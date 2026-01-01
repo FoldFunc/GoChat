@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,105 +17,71 @@ type Room struct {
 	Id int `json:"id"`
 	Name string `json:"name"`
 }
+type User struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+}
 type GlobalMessages struct {
 	Messages []Message `json:"messages"`
+}
+type GlobalUsers struct {
+	Users []User `json:"users"`
 }
 type GlobalRooms struct {
 	Rooms []Room `json:"rooms"`
 }
-type NewMessageReq struct {
-	Message string `json:"message"`
-}
 type NewRoomReq struct {
 	RoomId int `json:"room_id"`
 	RoomName string `json:"room_name"`
+	UserId int `json:"user_id"`
+}
+type NewUserReq struct {
+	UserName string `json:"user_name"`
 }
 func hello(w http.ResponseWriter, r *http.Request) {
 	log.Println("/ handler called")
 }
-func strint(value string) (int, error) {
-	i, err := strconv.Atoi(value)
-	if err != nil {
-		return -1, err
-	}
-	return i, nil
+func generateId() (int) {
+	return rand.IntN(1 << 32)
 }
-func getMessages(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only get requests allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	meesages := M.Messages
-	chat := GlobalMessages{
-		Messages: meesages,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(chat)
-	if err != nil {
-		http.Error(w, "Failed to encode messages", http.StatusInternalServerError)
-		return
-	}
-	
-}
-func getMessage(w http.ResponseWriter, r *http.Request) {
-	log.Println("/getMessage called")
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only get requests allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-	idNew, err := strint(id)
-	if err != nil {
-		http.Error(w, "Invalid number", http.StatusBadRequest)
-		return
-	}
-	var returnMessage Message
-	for _, m := range M.Messages {
-		if m.Id == idNew {
-			returnMessage = m
-		}
-	}
-	fmt.Printf("Message requested: %s", returnMessage.Body)
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(returnMessage)
-	if err != nil {
-		http.Error(w, "Failed to encode messages", http.StatusInternalServerError)
-		return
-	}
-}
-func newMessage(w http.ResponseWriter, r *http.Request) {
-	log.Println("/newMessage called")
+func newUser(w http.ResponseWriter, r *http.Request) {
+	log.Println("/newUser called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only post requests allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	defer r.Body.Close()
 
-	var req NewMessageReq
+	var req NewUserReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	fmt.Fprintf(w, "Recived message: %s\n", req.Message)
-	var newId int
-	if len(M.Messages) == 0 {
-		newId = 0
-	} else {
-		lastMessage := M.Messages[len(M.Messages)-1]
-		newId = lastMessage.Id + 1
-	}
-	NewMessage := Message{
+	newId := generateId()
+	NewUser := User{
 		Id: newId,
-		Body: req.Message,
+		Name: req.UserName,
 	}
-	M.Messages = append(M.Messages, NewMessage)
+	U.Users = append(U.Users, NewUser)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{
+		"id": newId,
+	})
+	for _, u := range U.Users {
+		fmt.Printf("User id: %d; UserName: %s\n", u.Id, u.Name)
+	}
+
 }
-func createRoom(w http.ResponseWriter, r *http.Request) {
+func userExsists(id int) (bool) {
+	for _, u := range U.Users {
+		if u.Id == id {
+			return true
+		}
+	}
+	return false
+}
+func newRoom(w http.ResponseWriter, r *http.Request) {
 	log.Println("/newRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only post requests allowed", http.StatusMethodNotAllowed)
@@ -128,20 +95,27 @@ func createRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Fprintf(w, "Recived creating room request of name: %s\n", req.RoomName)
-	var newId int
-	if len(R.Rooms) == 0 {
-		newId = 0
-	} else {
-		lastMessage := R.Rooms[len(R.Rooms)-1]
-		newId = lastMessage.Id + 1
+	if !userExsists(req.UserId) {
+		http.Error(w, "User validation failed", http.StatusForbidden)
+		return
 	}
+	newId := generateId()
 	NewRoom := Room{
 		Id: newId,
 		Name: req.RoomName,
 	}
+	for _, r := range R.Rooms {
+		fmt.Printf("Room id: %d;Room name: %s\n", newId, r.Name)
+		if req.RoomName == r.Name {
+			http.Error(w, "Room name already exsists", http.StatusConflict)
+			return
+		}
+	}
 	R.Rooms = append(R.Rooms, NewRoom)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{
+		"id": newId,
+	})
 }
 func getRoom(w http.ResponseWriter, r *http.Request) {
 	log.Println("/getRoom called")
@@ -154,30 +128,40 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	newId, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Invalid id", http.StatusBadRequest)
+		return
+	}
+	if !userExsists(newId) {
+		http.Error(w, "User validation failed", http.StatusForbidden)
+		return
+	}
 	var returnRoom Room
 	for _, r := range R.Rooms {
 		if r.Name == name{
 			returnRoom = r
 		}
 	}
-	fmt.Printf("Room id requested: %d", returnRoom.Id)
+	fmt.Printf("Room id requested: %d\n", returnRoom.Id)
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(returnRoom.Id)
-	if err != nil {
-		http.Error(w, "Failed to encode messages", http.StatusInternalServerError)
-		return
-	}
+	json.NewEncoder(w).Encode(map[string]int{
+		"id": returnRoom.Id,
+	})
 }
 var R GlobalRooms
 var M GlobalMessages 
-
+var U GlobalUsers
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", hello)
-	mux.HandleFunc("/newMessage", newMessage)
-	mux.HandleFunc("/getMessage", getMessage)
-	mux.HandleFunc("/getMessages", getMessages)
-	mux.HandleFunc("/newRoom", createRoom)
+	mux.HandleFunc("/newUser", newUser)
+	mux.HandleFunc("/newRoom", newRoom)
 	mux.HandleFunc("/getRoom", getRoom)
 	server := &http.Server{
 		Addr: ":42069",
