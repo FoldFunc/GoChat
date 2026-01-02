@@ -26,8 +26,46 @@ go.work.sum
 
 # env file
 .env
-/tmp
-/test/__pycache__
+tmp
+test/__pycache__
+test/.venv
 # Editor/IDE
 # .idea/
 # .vscode/
+# ----------------------------
+# Python-specific ignores
+# ----------------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ----------------------------
+# Virtual environment
+# ----------------------------
+
+# Ignore any virtual environment folder in 'test/'
+test/.venv/
+test/venv/
+
+# ----------------------------
+# Editor / OS files
+# ----------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ----------------------------
+# Logs
+# ----------------------------
+*.log
+
