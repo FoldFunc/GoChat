@@ -1,3 +1,10 @@
+/*
+Make the handler that would delete the rooms
+But only let the users that created the rooms to delete them.
+
+Also maybe make private and open rooms
+So to some of them you can only get access if someone assgins you there.
+*/
 package main
 
 import (
@@ -51,6 +58,10 @@ type RemovemesReq struct {
 	RoomId int    `json:"room_id"`
 	UserId int    `json:"user_id"`
 	MessId int    `json:"mess_id"`
+}
+type RemoveRoomReq struct {
+	RoomId int    `json:"room_id"`
+	UserId int    `json:"user_id"`
 }
 func hello(w http.ResponseWriter, r *http.Request) {
 	log.Println("/ handler called")
@@ -283,6 +294,34 @@ func removeMessage(w http.ResponseWriter, r *http.Request) {
 		"message": "message removed",
 	})
 }
+func removeRoom(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	var req RemoveRoomReq 
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if !userExsists(req.UserId) {
+		http.Error(w, "User verification failed", http.StatusForbidden)
+		return
+	}
+	if !roomExsistsToDelete(req.RoomId, req.UserId) {
+		http.Error(w, "You don't own the room", http.StatusForbidden)
+		return
+	}
+	for i, r := range R.Rooms {
+		if r.Id == req.RoomId {
+			R.Rooms = append(R.Rooms[:i], R.Rooms[i+1:]...)
+		}
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Room deleted",
+	})
+}
 var R GlobalRooms
 var U GlobalUsers
 func main() {
@@ -293,6 +332,7 @@ func main() {
 	mux.HandleFunc("/getRoom", getRoom)
 	mux.HandleFunc("/sendMessage", sendMessage)
 	mux.HandleFunc("/removeMessage", removeMessage)
+	mux.HandleFunc("/removeRoom", removeRoom)
 	server := &http.Server{
 		Addr: ":42069",
 		Handler: mux,
