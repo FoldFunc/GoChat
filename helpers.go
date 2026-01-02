@@ -90,6 +90,14 @@ func UserInRoom(user_id, room_id int) (bool) {
 	}
 	return false
 }
+func getRoomById(room_id int) (Room , error) {
+	for _, r := range R.Rooms {
+		if r.Id == room_id{
+			return r, nil
+		}
+	}
+	return Room{}, fmt.Errorf("Invalid room id")
+}
 func getUserById(user_id int) (User, error) {
 	for _, u := range U.Users {
 		if u.Id == user_id {

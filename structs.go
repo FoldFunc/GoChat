@@ -35,7 +35,6 @@ type GlobalRooms struct {
 	Rooms []Room `json:"rooms"`
 }
 type NewRoomReq struct {
-	RoomId   int    `json:"room_id"`
 	RoomName string `json:"room_name"`
 	UserId   int    `json:"user_id"`
 	RoomType bool   `json:"room_type"`

@@ -83,60 +83,14 @@ func newRoom(w http.ResponseWriter, r *http.Request) {
 		Admins: admins,
 		Users: users,
 	}
-	for _, r := range R.Rooms {
-		fmt.Printf("Room id: %d;Room name: %s;Room public: %v\n", newId, r.Name, r.Type)
-		if req.RoomName == r.Name {
-			http.Error(w, "Room name already exsists", http.StatusConflict)
-			return
-		}
-	}
 	R.Rooms = append(R.Rooms, NewRoom)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{
 		"id": newId,
 	})
 }
-// Depricated
-func getRoom(w http.ResponseWriter, r *http.Request) {
-	log.Println("/getRoom called")
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only get requests allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-	newId, err := strconv.Atoi(id)
-	if err != nil {
-		http.Error(w, "Invalid id", http.StatusBadRequest)
-		return
-	}
-	if !userExsists(newId) {
-		http.Error(w, "User validation failed", http.StatusForbidden)
-		return
-	}
-	var returnRoom Room
-	for _, r := range R.Rooms {
-		if r.Name == name{
-			returnRoom = r
-		}
-	}
-	idInt := strconv.Itoa(returnRoom.Id)
-	fmt.Printf("Room id requested: %d\n", returnRoom.Id)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"id": idInt,
-		"type": string(returnRoom.Type),
-	})
-}
 func sendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/sendMessageCloseRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only get requests allowed", http.StatusMethodNotAllowed)
 		return
@@ -169,9 +123,9 @@ func sendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: req.UserId,
 		Body: req.Body,
 	}
-	for _, r := range R.Rooms {
-		if r.Id == req.RoomId {
-			r.Messages = append(r.Messages, message)
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
+			R.Rooms[i].Messages = append(R.Rooms[i].Messages, message)
 		}
 	}
 	idInt := strconv.Itoa(id)
@@ -209,9 +163,9 @@ func sendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: req.UserId,
 		Body: req.Body,
 	}
-	for _, r := range R.Rooms {
-		if r.Id == req.RoomId {
-			r.Messages = append(r.Messages, message)
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
+			R.Rooms[i].Messages = append(R.Rooms[i].Messages, message)
 		}
 	}
 	idInt := strconv.Itoa(id)
@@ -221,6 +175,7 @@ func sendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func removeMessage(w http.ResponseWriter, r *http.Request) {
+	log.Println("/removeMessage called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -228,6 +183,7 @@ func removeMessage(w http.ResponseWriter, r *http.Request) {
 	var req RemovemesReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.Println("JSON ERROR: ", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
@@ -243,20 +199,22 @@ func removeMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No such message", http.StatusBadRequest)
 		return
 	}
-	for _, r := range R.Rooms {
-		if r.Id == req.RoomId {
-			for i, m := range r.Messages {
-				if m.Id == req.MessId {
-					r.Messages = append(r.Messages[:i], r.Messages[i+1:]...)
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
+			for j := range R.Rooms[i].Messages {
+				if R.Rooms[i].Messages[j].Id == req.MessId {
+					R.Rooms[i].Messages = append(R.Rooms[i].Messages[:j], R.Rooms[i].Messages[j+1:]...)
+					json.NewEncoder(w).Encode(map[string]string{
+						"message": "message removed",
+					})
+					return
 				}
 			}
 		}
 	}
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "message removed",
-	})
 }
 func removeRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/removeRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -275,16 +233,19 @@ func removeRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You don't own the room", http.StatusForbidden)
 		return
 	}
-	for i, r := range R.Rooms {
-		if r.Id == req.RoomId {
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
 			R.Rooms = append(R.Rooms[:i], R.Rooms[i+1:]...)
+
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": "Room deleted",
+			})
+			return
 		}
 	}
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Room deleted",
-	})
 }
 func addToCloseRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/addToCloseRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -312,13 +273,23 @@ func addToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusForbidden)
 		return
 	}
-	for _, r := range R.Rooms {
-		if r.Id == req.RoomId {
-			r.Users = append(r.Users, currentUser)
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
+			R.Rooms[i].Users = append(R.Rooms[i].Users, currentUser)
+		}
+	}
+	currentRoom, err := getRoomById(req.RoomId)
+	if err != nil {
+		http.Error(w, "Room not found", http.StatusBadRequest)
+		return
+	}
+	for i := range U.Users {
+		if U.Users[i].Id == req.UserId {
+			U.Users[i].Rooms = append(U.Users[i].Rooms, currentRoom)
 		}
 	}
 }
-func accesRoom(w http.ResponseWriter, r *http.Request) {
+func addToOpenRoom(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -346,9 +317,19 @@ func accesRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No such user", http.StatusForbidden)
 		return
 	}
-	for _, r := range R.Rooms {
-		if r.Id == req.RoomId {
-			r.Users = append(r.Users, currentUser)
+	currentRoom, err := getRoomById(req.RoomId) 
+	if err != nil {
+		http.Error(w, "No such room", http.StatusForbidden)
+		return
+	}
+	for i := range R.Rooms {
+		if R.Rooms[i].Id == req.RoomId {
+			R.Rooms[i].Users = append(R.Rooms[i].Users, currentUser)
+		}
+	}
+	for i := range U.Users {
+		if U.Users[i].Id == req.UserId {
+			U.Users[i].Rooms = append(U.Users[i].Rooms, currentRoom)
 		}
 	}
 	json.NewEncoder(w).Encode(map[string]string{
@@ -362,8 +343,7 @@ func main() {
 	mux.HandleFunc("/", hello)
 	mux.HandleFunc("/newUser", newUser)
 	mux.HandleFunc("/newRoom", newRoom)
-	mux.HandleFunc("/getRoom", getRoom)
-	mux.HandleFunc("/accesRoom", accesRoom)
+	mux.HandleFunc("/addToOpenRoom",addToOpenRoom)
 	mux.HandleFunc("/sendMessageOpenRoom", sendMessageOpenRoom)
 	mux.HandleFunc("/sendMessageCloseRoom", sendMessageCloseRoom)
 	mux.HandleFunc("/addToCloseRoom", addToCloseRoom)
