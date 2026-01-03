@@ -1,16 +1,17 @@
-package main
+package app
 
 import (
-	"math/rand/v2"
 	"fmt"
+	"math/rand/v2"
+
 )
-func generateId() (int) {
+func GenerateId() (int) {
 	var cont bool
 	var newId int
 	for {
 		cont = false
 		newId = rand.IntN(1 << 32)
-		for _, n := range usedIds {
+		for _, n := range UsedIds {
 			if n == newId {
 				cont = true
 			}
@@ -19,7 +20,7 @@ func generateId() (int) {
 			break
 		}
 	}
-	usedIds = append(usedIds, newId)
+	UsedIds = append(UsedIds, newId)
 	return newId
 }
 func IsAdmin(user_id, room_id int) (bool) {
@@ -34,7 +35,7 @@ func IsAdmin(user_id, room_id int) (bool) {
 	}
 	return false
 }
-func messageExsists(room_id, mess_id, user_id int) (bool) {
+func MessageExsists(room_id, mess_id, user_id int) (bool) {
 	for _, r := range R.Rooms {
 		if r.Id == room_id {
 			for _, m := range r.Messages {
@@ -46,7 +47,7 @@ func messageExsists(room_id, mess_id, user_id int) (bool) {
 	}
 	return false
 }
-func roomPublic(id int) (bool) {
+func RoomPublic(id int) (bool) {
 	for _, u := range R.Rooms {
 		if u.Id == id && u.Type == TypePublic {
 			return true
@@ -54,7 +55,7 @@ func roomPublic(id int) (bool) {
 	}
 	return false
 }
-func roomExsists(id int) (bool) {
+func RoomExsists(id int) (bool) {
 	for _, u := range R.Rooms {
 		if u.Id == id {
 			return true
@@ -62,7 +63,7 @@ func roomExsists(id int) (bool) {
 	}
 	return false
 }
-func roomExsistsToDelete(id, user_id int) (bool) {
+func RoomExsistsToDelete(id, user_id int) (bool) {
 	for _, u := range R.Rooms {
 		if u.Id == id && u.UserId == user_id {
 			return true
@@ -70,7 +71,7 @@ func roomExsistsToDelete(id, user_id int) (bool) {
 	}
 	return false
 }
-func userExsists(id int) (bool) {
+func UserExsists(id int) (bool) {
 	for _, u := range U.Users {
 		if u.Id == id {
 			return true
@@ -90,7 +91,7 @@ func UserInRoom(user_id, room_id int) (bool) {
 	}
 	return false
 }
-func getRoomById(room_id int) (Room , error) {
+func GetRoomById(room_id int) (Room , error) {
 	for _, r := range R.Rooms {
 		if r.Id == room_id{
 			return r, nil
@@ -98,7 +99,7 @@ func getRoomById(room_id int) (Room , error) {
 	}
 	return Room{}, fmt.Errorf("Invalid room id")
 }
-func getUserById(user_id int) (User, error) {
+func GetUserById(user_id int) (User, error) {
 	for _, u := range U.Users {
 		if u.Id == user_id {
 			return u, nil
@@ -106,7 +107,7 @@ func getUserById(user_id int) (User, error) {
 	}
 	return User{}, fmt.Errorf("Invalid user id")
 }
-func userPrivate(user_id int) (bool) {
+func UserPrivate(user_id int) (bool) {
 	for _, u := range U.Users {
 		if u.Id == user_id && u.ConnType == TypePrivate {
 			return true

@@ -1,6 +1,5 @@
-package main
+package app
 
-var usedIds []int
 type Message struct {
 	Id     int    `json:"id"`
 	UserId int    `json:"user_id"`
@@ -88,5 +87,5 @@ type ViewUserReq struct {
 }
 type GetNameByIdReq struct {
 	UserId   int `json:"user_id"`
-	SearchId int `json"search_id"`
+	SearchId int `json:"search_id"`
 }
