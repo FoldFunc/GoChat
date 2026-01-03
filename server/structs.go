@@ -81,5 +81,12 @@ type AccesRoomReq struct {
 type SendUserReq struct {
 	UserId  int    `json:"user_id"`
 	SendId  int    `json:"send_id"`
-	message string `json:"message"`
+	Message string `json:"message"`
+}
+type ViewUserReq struct {
+	UserId int `json:"user_id"`
+}
+type GetNameByIdReq struct {
+	UserId   int `json:"user_id"`
+	SearchId int `json"search_id"`
 }

@@ -368,7 +368,7 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	connRequest := ConnReq{
 		FromReqId: req.UserId,
-		Message: req.message,
+		Message: req.Message,
 	}
 	for i := range U.Users {
 		if U.Users[i].Id == req.SendId {
@@ -377,6 +377,69 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "User request sent",
+	})
+}
+func ViewUserRequests(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request", http.StatusMethodNotAllowed)
+		return
+	}
+	var req ViewUserReq
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if !userExsists(req.UserId) {
+		http.Error(w, "User verification failed", http.StatusForbidden)
+		return
+	}
+	if !userPrivate(req.UserId) {
+		http.Error(w, "No need for this method, user public", http.StatusNotAcceptable)
+		return
+	}
+	var requests []ConnReq
+	for _, u := range U.Users {
+		if u.Id == req.UserId {
+			requests = u.ConnRequests
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	
+	err = json.NewEncoder(w).Encode(requests)
+	if err != nil {
+		http.Error(w, "Error while encoding json", http.StatusInternalServerError)
+		return
+	}
+}
+func GetNameById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	var req GetNameByIdReq
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if !userExsists(req.UserId) {
+		http.Error(w, "User verification failed", http.StatusForbidden)
+		return
+	}
+	if !userExsists(req.SearchId) {
+		http.Error(w, "User verification failed", http.StatusForbidden)
+		return
+	}
+	var name string
+	for _, u := range U.Users {
+		if u.Id == req.SearchId {
+			name = u.Name
+		}
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"name": name,
 	})
 }
 var R GlobalRooms
@@ -401,6 +464,8 @@ func main() {
 
 	mux.HandleFunc("/sendUserRequest", SendUserRequest)
 	mux.HandleFunc("/viewUserRequests", ViewUserRequests)
+
+	mux.HandleFunc("/getNameById", GetNameById)
 	server := &http.Server{
 		Addr: ":42069",
 		Handler: mux,
