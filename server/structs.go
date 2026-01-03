@@ -20,10 +20,22 @@ type Room struct {
 	Admins   []User    `json:"admins"`
 	Users    []User    `json:"users"`
 }
+type ConnReq struct {
+	FromReqId int    `json:"from_req_id"`
+	Message   string `json:"message"`
+}
+type Chat struct {
+	User1    User      `json:"user_1"`
+	User2    User      `json:"user_2"`
+	Messages []Message `json:"messages"`
+}
 type User struct {
-	Id    int     `json:"id"`
-	Name  string  `json:"name"`
-	Rooms []Room `json:"rooms"`
+	Id           int       `json:"id"`
+	Name         string    `json:"name"`
+	Rooms        []Room    `json:"rooms"`
+	Chats        []Chat    `json:"chats"`
+	ConnType     Type    	 `json:"conn_type"`
+	ConnRequests []ConnReq `json:"conn_request"`
 }
 type GlobalMessages struct {
 	Messages []Message `json:"messages"`
@@ -41,6 +53,7 @@ type NewRoomReq struct {
 }
 type NewUserReq struct {
 	UserName string `json:"user_name"`
+	ConnType bool 	`json:"conn_type"`
 }
 type SendMessreq struct {
 	RoomId int    `json:"room_id"`
@@ -64,4 +77,9 @@ type AddToCloseRoomReq struct {
 type AccesRoomReq struct {
 	RoomId int `json:"room_id"`
 	UserId int `json:"user_id"`
+}
+type SendUserReq struct {
+	UserId  int    `json:"user_id"`
+	SendId  int    `json:"send_id"`
+	message string `json:"message"`
 }

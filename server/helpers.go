@@ -106,3 +106,11 @@ func getUserById(user_id int) (User, error) {
 	}
 	return User{}, fmt.Errorf("Invalid user id")
 }
+func userPrivate(user_id int) (bool) {
+	for _, u := range U.Users {
+		if u.Id == user_id && u.ConnType == TypePrivate {
+			return true
+		}
+	}
+	return false
+}

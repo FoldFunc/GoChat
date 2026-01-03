@@ -27,9 +27,16 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newId := generateId()
+	var connType Type
+	if req.ConnType {
+		connType = TypePublic
+	} else {
+		connType = TypePrivate
+	}
 	NewUser := User{
 		Id: newId,
 		Name: req.UserName,
+		ConnType: connType,
 	}
 	U.Users = append(U.Users, NewUser)
 	w.Header().Set("Content-Type", "application/json")
@@ -336,19 +343,64 @@ func addToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		"message": "User added to the room",
 	})
 }
+func SendUserRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	var req SendUserReq
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if !userExsists(req.UserId) {
+		http.Error(w, "User verification failed", http.StatusForbidden)
+		return
+	}
+	if !userExsists(req.SendId) {
+		http.Error(w, "No such user", http.StatusNotFound)
+		return
+	}
+	if !userPrivate(req.SendId) {
+		http.Error(w, "No need to send the reques, user public", http.StatusNotAcceptable)
+		return
+	}
+	connRequest := ConnReq{
+		FromReqId: req.UserId,
+		Message: req.message,
+	}
+	for i := range U.Users {
+		if U.Users[i].Id == req.SendId {
+			U.Users[i].ConnRequests = append(U.Users[i].ConnRequests, connRequest)
+		}
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User request sent",
+	})
+}
 var R GlobalRooms
 var U GlobalUsers
 func main() {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/", hello)
+
 	mux.HandleFunc("/newUser", newUser)
+
 	mux.HandleFunc("/newRoom", newRoom)
-	mux.HandleFunc("/addToOpenRoom",addToOpenRoom)
+
 	mux.HandleFunc("/sendMessageOpenRoom", sendMessageOpenRoom)
 	mux.HandleFunc("/sendMessageCloseRoom", sendMessageCloseRoom)
+
 	mux.HandleFunc("/addToCloseRoom", addToCloseRoom)
+	mux.HandleFunc("/addToOpenRoom",addToOpenRoom)
+
 	mux.HandleFunc("/removeMessage", removeMessage)
 	mux.HandleFunc("/removeRoom", removeRoom)
+
+	mux.HandleFunc("/sendUserRequest", SendUserRequest)
+	mux.HandleFunc("/viewUserRequests", ViewUserRequests)
 	server := &http.Server{
 		Addr: ":42069",
 		Handler: mux,
