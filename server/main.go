@@ -1,9 +1,13 @@
+// Now let's make some REAL auth
+// We will need to do some cookies, Hell yeah
 package main
 
 import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/FoldFunc/GoChat/server/app"
 	"github.com/FoldFunc/GoChat/server/components"
 )
 func main() {
@@ -13,21 +17,39 @@ func main() {
 
 	mux.HandleFunc("/newUser", components.NewUser)
 
-	mux.HandleFunc("/newRoom", components.NewRoom)
+	mux.Handle("/newRoom", 
+		app.AuthCookie(http.HandlerFunc(components.NewRoom)),
+	)
+	mux.Handle("/sendMessageOpenRoom", 
+		app.AuthCookie(http.HandlerFunc(components.SendMessageOpenRoom)),
+	)
+	mux.Handle("/sendMessageCloseRoom", 
+		app.AuthCookie(http.HandlerFunc(components.SendMessageCloseRoom)),
+	)
+	mux.Handle("/addToCloseRoom", 
+		app.AuthCookie(http.HandlerFunc(components.AddToCloseRoom)),
+	)
+	mux.Handle("/addToOpenRoom", 
+		app.AuthCookie(http.HandlerFunc(components.AddToOpenRoom)),
+	)
+	mux.Handle("/removeMessage", 
+		app.AuthCookie(http.HandlerFunc(components.RemoveMessage)),
+	)
+	mux.Handle("/removeRoom", 
+		app.AuthCookie(http.HandlerFunc(components.RemoveRoom)),
+	)
+	mux.Handle("/sendUserRequest", 
+		app.AuthCookie(http.HandlerFunc(components.SendUserRequest)),
+	)
+	mux.Handle("/viewUserRequests", 
+		app.AuthCookie(http.HandlerFunc(components.ViewUserRequests)),
+	)
 
-	mux.HandleFunc("/sendMessageOpenRoom", components.SendMessageOpenRoom)
-	mux.HandleFunc("/sendMessageCloseRoom", components.SendMessageCloseRoom)
+	mux.Handle("/getNameById", 
+		app.AuthCookie(http.HandlerFunc(components.GetNameById)),
+	)
 
-	mux.HandleFunc("/addToCloseRoom", components.AddToCloseRoom)
-	mux.HandleFunc("/addToOpenRoom",components.AddToOpenRoom)
 
-	mux.HandleFunc("/removeMessage", components.RemoveMessage)
-	mux.HandleFunc("/removeRoom", components.RemoveRoom)
-
-	mux.HandleFunc("/sendUserRequest", components.SendUserRequest)
-	mux.HandleFunc("/viewUserRequests", components.ViewUserRequests)
-
-	mux.HandleFunc("/getNameById", components.GetNameById)
 	server := &http.Server{
 		Addr: ":42069",
 		Handler: mux,

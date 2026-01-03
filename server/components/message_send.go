@@ -20,10 +20,6 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
-		return
-	}
 	if !app.RoomExsists(req.RoomId) {
 		http.Error(w, "No such room", http.StatusNotFound)
 		return 
@@ -33,9 +29,10 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := app.GenerateId()
+	userId := r.Context().Value("userID").(int)
 	message := app.Message{
 		Id: id,
-		UserId: req.UserId,
+		UserId: userId,
 		Body: req.Body,
 	}
 	for i := range app.R.Rooms {
@@ -61,10 +58,7 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
-		return
-	}
+	userId := r.Context().Value("userID").(int)
 	if !app.RoomExsists(req.RoomId) {
 		http.Error(w, "No such room", http.StatusNotFound)
 		return 
@@ -73,14 +67,14 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Room public", http.StatusForbidden)
 		return
 	}
-	if !app.UserInRoom(req.UserId, req.RoomId) {
+	if !app.UserInRoom(userId, req.RoomId) {
 		http.Error(w, "You don't belong to this room", http.StatusForbidden)
 		return
 	}
 	id := app.GenerateId()
 	message := app.Message{
 		Id: id,
-		UserId: req.UserId,
+		UserId: userId,
 		Body: req.Body,
 	}
 	for i := range app.R.Rooms {

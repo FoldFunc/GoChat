@@ -19,15 +19,16 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return 
 	}
+	adminID := r.Context().Value("userID").(int)
 	if !app.UserExsists(req.UserId) {
 		http.Error(w, "User verification failed", http.StatusNotFound)
 		return
 	}
-	if !app.UserExsists(req.AdminId) {
+	if !app.UserExsists(adminID) {
 		http.Error(w, "Admin verification failed", http.StatusNotFound)
 		return
 	}
-	if !app.IsAdmin(req.AdminId, req.RoomId) {
+	if !app.IsAdmin(adminID, req.RoomId) {
 		http.Error(w, "AdminId is not an admin", http.StatusForbidden)
 		return
 	}
@@ -63,7 +64,8 @@ func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
+	userId := r.Context().Value("userID").(int)
+	if !app.UserExsists(userId) {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
@@ -75,7 +77,7 @@ func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Room is not public", http.StatusBadRequest)
 		return
 	}
-	currentUser, err := app.GetUserById(req.UserId) 
+	currentUser, err := app.GetUserById(userId) 
 	if err != nil {
 		http.Error(w, "No such user", http.StatusForbidden)
 		return
@@ -91,7 +93,7 @@ func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for i := range app.U.Users {
-		if app.U.Users[i].Id == req.UserId {
+		if app.U.Users[i].Id == userId {
 			app.U.Users[i].Rooms = append(app.U.Users[i].Rooms, currentRoom)
 		}
 	}

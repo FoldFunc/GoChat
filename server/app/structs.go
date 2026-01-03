@@ -31,6 +31,8 @@ type Chat struct {
 type User struct {
 	Id           int       `json:"id"`
 	Name         string    `json:"name"`
+	Password     string    `json:"password"`
+	LoggedIn     bool      `json:"logged_in"`
 	Rooms        []Room    `json:"rooms"`
 	Chats        []Chat    `json:"chats"`
 	ConnType     Type    	 `json:"conn_type"`
@@ -47,45 +49,39 @@ type GlobalRooms struct {
 }
 type NewRoomReq struct {
 	RoomName string `json:"room_name"`
-	UserId   int    `json:"user_id"`
 	RoomType bool   `json:"room_type"`
 }
 type NewUserReq struct {
 	UserName string `json:"user_name"`
 	ConnType bool 	`json:"conn_type"`
+	Password string `json:"password"`
 }
 type SendMessreq struct {
 	RoomId int    `json:"room_id"`
-	UserId int    `json:"user_id"`
 	Body   string `json:"body"`
 }
 type RemovemesReq struct {
 	RoomId int    `json:"room_id"`
-	UserId int    `json:"user_id"`
 	MessId int    `json:"mess_id"`
 }
 type RemoveRoomReq struct {
 	RoomId int    `json:"room_id"`
-	UserId int    `json:"user_id"`
 }
 type AddToCloseRoomReq struct {
 	RoomId  int `json:"room_id"`
-	AdminId int `json:"admin_id"`
 	UserId  int `json:"user_id"`
 }
 type AccesRoomReq struct {
 	RoomId int `json:"room_id"`
-	UserId int `json:"user_id"`
 }
 type SendUserReq struct {
-	UserId  int    `json:"user_id"`
 	SendId  int    `json:"send_id"`
 	Message string `json:"message"`
 }
-type ViewUserReq struct {
-	UserId int `json:"user_id"`
-}
 type GetNameByIdReq struct {
-	UserId   int `json:"user_id"`
 	SearchId int `json:"search_id"`
+}
+type LoginReq struct {
+	UserName string `json:"user_name"`
+	UserPassword string `json:"user_password"`
 }

@@ -33,6 +33,7 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 		Id: newId,
 		Name: req.UserName,
 		ConnType: connType,
+		Password: req.Password,
 	}
 	app.U.Users = append(app.U.Users, NewUser)
 	w.Header().Set("Content-Type", "application/json")
@@ -58,10 +59,6 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
-		http.Error(w, "User validation failed", http.StatusForbidden)
-		return
-	}
 	var roomType app.Type
 	if req.RoomType {
 		roomType = app.Type(app.TypePublic)
@@ -69,7 +66,8 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 		roomType = app.Type(app.TypePrivate)
 	}
 	newId := app.GenerateId()
-	currentUser, err := app.GetUserById(req.UserId)
+	userId := r.Context().Value("userID").(int)
+	currentUser, err := app.GetUserById(userId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -80,7 +78,7 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 	users = append(users, currentUser)
 	NewRoom := app.Room{
 		Id: newId,
-		UserId: req.UserId,
+		UserId: userId,
 		Name: req.RoomName,
 		Type: roomType,
 		Admins: admins,

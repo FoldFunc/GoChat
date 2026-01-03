@@ -99,6 +99,14 @@ func GetRoomById(room_id int) (Room , error) {
 	}
 	return Room{}, fmt.Errorf("Invalid room id")
 }
+func GetUserByName(user_name string) (User, error) {
+	for _, u := range U.Users {
+		if u.Name == user_name {
+			return u, nil
+		}
+	}
+	return User{}, fmt.Errorf("Invalid user name")
+}
 func GetUserById(user_id int) (User, error) {
 	for _, u := range U.Users {
 		if u.Id == user_id {

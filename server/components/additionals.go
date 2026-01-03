@@ -21,7 +21,8 @@ func GetNameById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
+	userId := r.Context().Value("userID").(int)
+	if !app.UserExsists(userId) {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}

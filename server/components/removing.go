@@ -20,7 +20,8 @@ func RemoveMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
+	userId := r.Context().Value("userID").(int)
+	if !app.UserExsists(userId) {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
@@ -28,7 +29,7 @@ func RemoveMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No such room", http.StatusBadRequest)
 		return
 	}
-	if !app.MessageExsists(req.RoomId, req.MessId, req.UserId) {
+	if !app.MessageExsists(req.RoomId, req.MessId, userId) {
 		http.Error(w, "No such message", http.StatusBadRequest)
 		return
 	}
@@ -58,11 +59,12 @@ func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
+	userId := r.Context().Value("userID").(int)
+	if !app.UserExsists(userId) {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
-	if !app.RoomExsistsToDelete(req.RoomId, req.UserId) {
+	if !app.RoomExsistsToDelete(req.RoomId, userId) {
 		http.Error(w, "You don't own the room", http.StatusForbidden)
 		return
 	}

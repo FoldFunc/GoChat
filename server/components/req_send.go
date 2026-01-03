@@ -19,10 +19,7 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.UserExsists(req.UserId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
-		return
-	}
+	userId := r.Context().Value("userID").(int)
 	if !app.UserExsists(req.SendId) {
 		http.Error(w, "No such user", http.StatusNotFound)
 		return
@@ -32,7 +29,7 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	connRequest := app.ConnReq{
-		FromReqId: req.UserId,
+		FromReqId: userId,
 		Message: req.Message,
 	}
 	for i := range app.U.Users {
@@ -45,34 +42,25 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func ViewUserRequests(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request", http.StatusMethodNotAllowed)
 		return
 	}
-	var req app.ViewUserReq
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-	if !app.UserExsists(req.UserId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
-		return
-	}
-	if !app.UserPrivate(req.UserId) {
+	userId := r.Context().Value("userID").(int)
+	if !app.UserPrivate(userId) {
 		http.Error(w, "No need for this method, user public", http.StatusNotAcceptable)
 		return
 	}
 	var requests []app.ConnReq
 	for _, u := range app.U.Users {
-		if u.Id == req.UserId {
+		if u.Id == userId{
 			requests = u.ConnRequests
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	
-	err = json.NewEncoder(w).Encode(requests)
+	err := json.NewEncoder(w).Encode(requests)
 	if err != nil {
 		http.Error(w, "Error while encoding json", http.StatusInternalServerError)
 		return
