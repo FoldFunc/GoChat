@@ -1,5 +1,3 @@
-// Now let's make some REAL auth
-// We will need to do some cookies, Hell yeah
 package main
 
 import (
@@ -49,6 +47,15 @@ func main() {
 		app.AuthCookie(http.HandlerFunc(components.GetNameById)),
 	)
 
+	mux.Handle("/queryUserRooms",
+		app.AuthCookie(http.HandlerFunc(components.QueryUserRooms)),
+	)
+	mux.Handle("/queryUserChats",
+		app.AuthCookie(http.HandlerFunc(components.QueryUserChats)),
+	)
+	mux.Handle("/queryUserChat",
+		app.AuthCookie(http.HandlerFunc(components.QueryUserChat)),
+	)
 
 	server := &http.Server{
 		Addr: ":42069",

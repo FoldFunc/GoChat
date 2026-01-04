@@ -91,29 +91,29 @@ func UserInRoom(user_id, room_id int) (bool) {
 	}
 	return false
 }
-func GetRoomById(room_id int) (Room , error) {
+func GetRoomById(room_id int) (*Room , error) {
 	for _, r := range R.Rooms {
 		if r.Id == room_id{
-			return r, nil
+			return &r, nil
 		}
 	}
-	return Room{}, fmt.Errorf("Invalid room id")
+	return &Room{}, fmt.Errorf("Invalid room id")
 }
-func GetUserByName(user_name string) (User, error) {
+func GetUserByName(user_name string) (*User, error) {
 	for _, u := range U.Users {
 		if u.Name == user_name {
-			return u, nil
+			return &u, nil
 		}
 	}
-	return User{}, fmt.Errorf("Invalid user name")
+	return &User{}, fmt.Errorf("Invalid user name")
 }
-func GetUserById(user_id int) (User, error) {
+func GetUserById(user_id int) (*User, error) {
 	for _, u := range U.Users {
 		if u.Id == user_id {
-			return u, nil
+			return &u, nil
 		}
 	}
-	return User{}, fmt.Errorf("Invalid user id")
+	return &User{}, fmt.Errorf("Invalid user id")
 }
 func UserPrivate(user_id int) (bool) {
 	for _, u := range U.Users {

@@ -24,10 +24,6 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User verification failed", http.StatusNotFound)
 		return
 	}
-	if !app.UserExsists(adminID) {
-		http.Error(w, "Admin verification failed", http.StatusNotFound)
-		return
-	}
 	if !app.IsAdmin(adminID, req.RoomId) {
 		http.Error(w, "AdminId is not an admin", http.StatusForbidden)
 		return

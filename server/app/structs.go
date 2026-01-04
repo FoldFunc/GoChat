@@ -85,3 +85,9 @@ type LoginReq struct {
 	UserName string `json:"user_name"`
 	UserPassword string `json:"user_password"`
 }
+type QueryUserChatReq struct {
+	ChatWithName string `json:"chat_with_name"`
+}
+type QueryUserRoomReq struct {
+	RoomName string `json:"room_name"`
+}
