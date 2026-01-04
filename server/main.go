@@ -7,8 +7,10 @@ import (
 
 	"github.com/FoldFunc/GoChat/server/app"
 	"github.com/FoldFunc/GoChat/server/components"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func main() {
+	db.Init()
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", components.Hello)
@@ -39,6 +41,7 @@ func main() {
 	mux.Handle("/sendUserRequest", 
 		app.AuthCookie(http.HandlerFunc(components.SendUserRequest)),
 	)
+	// Here
 	mux.Handle("/viewUserRequests", 
 		app.AuthCookie(http.HandlerFunc(components.ViewUserRequests)),
 	)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func NewUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("/newUser called")
@@ -35,14 +36,15 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 		ConnType: connType,
 		Password: req.Password,
 	}
-	app.U.Users = append(app.U.Users, NewUser)
+	err = db.CreateUser(NewUser)
+	if err != nil {
+		http.Error(w, "Error while adding to the database", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{
 		"id": newId,
 	})
-	for _, u := range app.U.Users {
-		fmt.Printf("User id: %d; UserName: %s\n", u.Id, u.Name)
-	}
 
 }
 func NewRoom(w http.ResponseWriter, r *http.Request) {
@@ -72,8 +74,8 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	var admins []app.User
-	var users  []app.User
+	var admins []*app.User
+	var users  []*app.User
 	admins = append(admins, currentUser)
 	users = append(users, currentUser)
 	NewRoom := app.Room{
@@ -84,7 +86,11 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 		Admins: admins,
 		Users: users,
 	}
-	app.R.Rooms = append(app.R.Rooms, NewRoom)
+	err = db.CreateRoom(NewRoom)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{
 		"id": newId,

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 	log.Println("/addToCloseRoom called")
@@ -33,21 +34,19 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusForbidden)
 		return
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			app.R.Rooms[i].Users = append(app.R.Rooms[i].Users, currentUser)
-		}
-	}
 	currentRoom, err := app.GetRoomById(req.RoomId)
 	if err != nil {
 		http.Error(w, "Room not found", http.StatusBadRequest)
 		return
 	}
-	for i := range app.U.Users {
-		if app.U.Users[i].Id == req.UserId {
-			app.U.Users[i].Rooms = append(app.U.Users[i].Rooms, currentRoom)
-		}
+	err = db.InsertUserCloseRoom(*currentUser, *currentRoom)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User added to a close room",
+	})
 }
 func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -83,17 +82,12 @@ func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No such room", http.StatusForbidden)
 		return
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			app.R.Rooms[i].Users = append(app.R.Rooms[i].Users, currentUser)
-		}
-	}
-	for i := range app.U.Users {
-		if app.U.Users[i].Id == userId {
-			app.U.Users[i].Rooms = append(app.U.Users[i].Rooms, currentRoom)
-		}
+	err = db.InsertUserCloseRoom(*currentUser, *currentRoom)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User added to the room",
+		"message": "User added to a close room",
 	})
 }

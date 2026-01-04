@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func RemoveMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println("/removeMessage called")
@@ -33,19 +34,24 @@ func RemoveMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No such message", http.StatusBadRequest)
 		return
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			for j := range app.R.Rooms[i].Messages {
-				if app.R.Rooms[i].Messages[j].Id == req.MessId {
-					app.R.Rooms[i].Messages = append(app.R.Rooms[i].Messages[:j], app.R.Rooms[i].Messages[j+1:]...)
-					json.NewEncoder(w).Encode(map[string]string{
-						"message": "message removed",
-					})
-					return
-				}
-			}
-		}
+	user, err := app.GetUserById(userId)
+	if err != nil {
+		http.Error(w, "No such user", http.StatusBadRequest)
+		return
 	}
+	room, err := app.GetRoomById(req.RoomId)
+	if err != nil {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	err = db.RemoveMessage(*user, *room, req.MessId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "message deleted",
+	}) 
 }
 func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 	log.Println("/removeRoom called")
@@ -68,14 +74,17 @@ func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You don't own the room", http.StatusForbidden)
 		return
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			app.R.Rooms = append(app.R.Rooms[:i], app.R.Rooms[i+1:]...)
-
-			json.NewEncoder(w).Encode(map[string]string{
-				"message": "Room deleted",
-			})
-			return
-		}
+	room, err := app.GetRoomById(req.RoomId)
+	if err != nil {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
 	}
+	err = db.RemoveRoom(*room)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "message deleted",
+	}) 
 }

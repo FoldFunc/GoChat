@@ -16,16 +16,16 @@ type Room struct {
 	Name     string    `json:"name"`
 	Messages []Message `json:"messages"`
 	Type     Type      `json:"type"`
-	Admins   []User    `json:"admins"`
-	Users    []User    `json:"users"`
+	Admins   []*User    `json:"admins"`
+	Users    []*User    `json:"users"`
 }
 type ConnReq struct {
 	FromReqId int    `json:"from_req_id"`
 	Message   string `json:"message"`
 }
 type Chat struct {
-	User1    User      `json:"user_1"`
-	User2    User      `json:"user_2"`
+	User1    *User      `json:"user_1"`
+	User2    *User      `json:"user_2"`
 	Messages []Message `json:"messages"`
 }
 type User struct {
@@ -33,8 +33,8 @@ type User struct {
 	Name         string    `json:"name"`
 	Password     string    `json:"password"`
 	LoggedIn     bool      `json:"logged_in"`
-	Rooms        []Room    `json:"rooms"`
-	Chats        []Chat    `json:"chats"`
+	Rooms        []*Room    `json:"rooms"`
+	Chats        []*Chat    `json:"chats"`
 	ConnType     Type    	 `json:"conn_type"`
 	ConnRequests []ConnReq `json:"conn_request"`
 }

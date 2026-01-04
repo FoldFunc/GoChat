@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -32,10 +33,10 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 		FromReqId: userId,
 		Message: req.Message,
 	}
-	for i := range app.U.Users {
-		if app.U.Users[i].Id == req.SendId {
-			app.U.Users[i].ConnRequests = append(app.U.Users[i].ConnRequests, connRequest)
-		}
+	err = db.AddUserReq(connRequest, req.SendId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "User request sent",
@@ -51,16 +52,20 @@ func ViewUserRequests(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No need for this method, user public", http.StatusNotAcceptable)
 		return
 	}
-	var requests []app.ConnReq
-	for _, u := range app.U.Users {
-		if u.Id == userId{
-			requests = u.ConnRequests
-		}
+	user, err := app.GetUserById(userId)
+	if err != nil {
+		http.Error(w, "No such user", http.StatusBadRequest)
+		return 
+	}
+	requests, err := db.GetConnReq(*user)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return 
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	
-	err := json.NewEncoder(w).Encode(requests)
+	err = json.NewEncoder(w).Encode(requests)
 	if err != nil {
 		http.Error(w, "Error while encoding json", http.StatusInternalServerError)
 		return

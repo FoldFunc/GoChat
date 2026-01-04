@@ -13,10 +13,10 @@ func QueryUserRooms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	var rooms []app.Room
+	var rooms []*app.Room
 	for _, u := range app.U.Users {
 		if u.Id == userId {
-			rooms = append(rooms, u.Rooms...)
+			rooms = u.Rooms
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")	
@@ -28,10 +28,10 @@ func QueryUserChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	var chats []app.Chat
+	var chats []*app.Chat
 	for _, u := range app.U.Users {
 		if u.Id == userId {
-			chats = append(chats, u.Chats...)
+			chats = u.Chats
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")	
@@ -57,7 +57,7 @@ func QueryUserChat(w http.ResponseWriter, r *http.Request) {
 	var chat app.Chat
 	for _, c := range user.Chats {
 		if c.User2.Name == req.ChatWithName {
-			chat = c
+			chat = *c
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -83,7 +83,7 @@ func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
 	var room app.Room
 	for _, r := range user.Rooms {
 		if r.Name == req.RoomName {
-			room = r
+			room = *r
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")

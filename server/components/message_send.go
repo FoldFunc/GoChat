@@ -2,11 +2,12 @@ package components
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sendMessageOpenRoom called")
@@ -35,10 +36,15 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: userId,
 		Body: req.Body,
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			app.R.Rooms[i].Messages = append(app.R.Rooms[i].Messages, message)
-		}
+	room, err  := app.GetRoomById(req.RoomId)
+	if err != nil {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	err = db.InsertMessageRoom(message, *room)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	idInt := strconv.Itoa(id)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -77,10 +83,15 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: userId,
 		Body: req.Body,
 	}
-	for i := range app.R.Rooms {
-		if app.R.Rooms[i].Id == req.RoomId {
-			app.R.Rooms[i].Messages = append(app.R.Rooms[i].Messages, message)
-		}
+	room, err  := app.GetRoomById(req.RoomId)
+	if err != nil {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	err = db.InsertMessageRoom(message, *room)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	idInt := strconv.Itoa(id)
 	json.NewEncoder(w).Encode(map[string]string{
