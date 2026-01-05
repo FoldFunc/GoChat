@@ -41,7 +41,6 @@ func main() {
 	mux.Handle("/sendUserRequest", 
 		app.AuthCookie(http.HandlerFunc(components.SendUserRequest)),
 	)
-	// Here
 	mux.Handle("/viewUserRequests", 
 		app.AuthCookie(http.HandlerFunc(components.ViewUserRequests)),
 	)

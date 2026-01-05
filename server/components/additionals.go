@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 func Hello(w http.ResponseWriter, r *http.Request) {
 	log.Println("/ handler called")
@@ -26,15 +27,10 @@ func GetNameById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
-	if !app.UserExsists(req.SearchId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
+	name, err := db.GetNameByIdDB(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
-	}
-	var name string
-	for _, u := range app.U.Users {
-		if u.Id == req.SearchId {
-			name = u.Name
-		}
 	}
 	json.NewEncoder(w).Encode(map[string]string{
 		"name": name,
