@@ -21,12 +21,22 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	if !app.RoomExsists(req.RoomId) {
-		http.Error(w, "No such room", http.StatusNotFound)
-		return 
+	exsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
-	if !app.RoomPublic(req.RoomId) {
-		http.Error(w, "Room not public", http.StatusForbidden)
+	if !exsists {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	isPublic, err := db.IsRoomPublicDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !isPublic{
+		http.Error(w, "Room is private", http.StatusBadRequest)
 		return
 	}
 	id := app.GenerateId()
@@ -36,12 +46,12 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: userId,
 		Body: req.Body,
 	}
-	room, err  := app.GetRoomById(req.RoomId)
+	room, err := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
-		http.Error(w, "No such room", http.StatusBadRequest)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	err = db.InsertMessageRoom(message, *room)
+	err = db.InsertMessageRoom(message, room)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -65,15 +75,30 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.RoomExsists(req.RoomId) {
-		http.Error(w, "No such room", http.StatusNotFound)
-		return 
-	}
-	if app.RoomPublic(req.RoomId) {
-		http.Error(w, "Room public", http.StatusForbidden)
+	exsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if !app.UserInRoom(userId, req.RoomId) {
+	if !exsists {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	isPublic, err := db.IsRoomPublicDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if isPublic {
+		http.Error(w, "Room public", http.StatusBadRequest)
+		return
+	}
+	inRoom, err := db.IsUserInRoomDB(userId, req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !inRoom {
 		http.Error(w, "You don't belong to this room", http.StatusForbidden)
 		return
 	}
@@ -83,12 +108,12 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		UserId: userId,
 		Body: req.Body,
 	}
-	room, err  := app.GetRoomById(req.RoomId)
+	room, err  := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
 		http.Error(w, "No such room", http.StatusBadRequest)
 		return
 	}
-	err = db.InsertMessageRoom(message, *room)
+	err = db.InsertMessageRoom(message, room)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

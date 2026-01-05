@@ -21,25 +21,35 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 	adminID := r.Context().Value("userID").(int)
-	if !app.UserExsists(req.UserId) {
+	exsists, err := db.UserExists(req.UserId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists{
 		http.Error(w, "User verification failed", http.StatusNotFound)
 		return
 	}
-	if !app.IsAdmin(adminID, req.RoomId) {
+	isAdmin, err := db.IsUserAdminInRoomDB(adminID, req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !isAdmin {
 		http.Error(w, "AdminId is not an admin", http.StatusForbidden)
 		return
 	}
-	currentUser, err := app.GetUserById(req.UserId)
+	currentUser, err := db.GetUserByIdDB(req.UserId)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusForbidden)
 		return
 	}
-	currentRoom, err := app.GetRoomById(req.RoomId)
+	currentRoom, err := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
 		http.Error(w, "Room not found", http.StatusBadRequest)
 		return
 	}
-	err = db.InsertUserCloseRoom(*currentUser, *currentRoom)
+	err = db.InsertUserCloseRoom(currentUser, currentRoom)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -60,29 +70,44 @@ func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserExsists(userId) {
+	exsists, err := db.UserExists(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists{
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
-	if !app.RoomExsists(req.RoomId) {
+	roomExsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !roomExsists{
 		http.Error(w, "Room does not exsist", http.StatusBadRequest)
 		return
 	}
-	if !app.RoomPublic(req.RoomId) {
+	isPublic, err := db.IsRoomPublicDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !isPublic {
 		http.Error(w, "Room is not public", http.StatusBadRequest)
 		return
 	}
-	currentUser, err := app.GetUserById(userId) 
+	currentUser, err := db.GetUserByIdDB(userId) 
 	if err != nil {
 		http.Error(w, "No such user", http.StatusForbidden)
 		return
 	}
-	currentRoom, err := app.GetRoomById(req.RoomId) 
+	currentRoom, err := db.GetRoomByIDDB(req.RoomId) 
 	if err != nil {
 		http.Error(w, "No such room", http.StatusForbidden)
 		return
 	}
-	err = db.InsertUserCloseRoom(*currentUser, *currentRoom)
+	err = db.InsertUserCloseRoom(currentUser, currentRoom)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

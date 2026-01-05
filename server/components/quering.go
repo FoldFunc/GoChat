@@ -65,7 +65,7 @@ func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	user, err := app.GetUserById(userId)
+	user, err := db.GetUserByIdDB(userId)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusBadRequest)
 		return

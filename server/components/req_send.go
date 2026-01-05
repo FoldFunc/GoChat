@@ -21,11 +21,21 @@ func SendUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserExsists(req.SendId) {
+	exsists, err := db.UserExists(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists{
 		http.Error(w, "No such user", http.StatusNotFound)
 		return
 	}
-	if !app.UserPrivate(req.SendId) {
+	isPrivate, err := db.IsUserPrivateDB(req.SendId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !isPrivate {
 		http.Error(w, "No need to send the reques, user public", http.StatusNotAcceptable)
 		return
 	}
@@ -48,16 +58,21 @@ func ViewUserRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserPrivate(userId) {
-		http.Error(w, "No need for this method, user public", http.StatusNotAcceptable)
+	isPrivate, err := db.IsUserPrivateDB(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	user, err := app.GetUserById(userId)
+	if !isPrivate {
+		http.Error(w, "No need to send the reques, user public", http.StatusNotAcceptable)
+		return
+	}
+	user, err := db.GetUserByIdDB(userId)
 	if err != nil {
 		http.Error(w, "No such user", http.StatusBadRequest)
 		return 
 	}
-	requests, err := db.GetConnReq(*user)
+	requests, err := db.GetConnReq(user)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return 

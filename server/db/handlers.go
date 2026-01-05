@@ -23,7 +23,7 @@ func CreateRoom(room app.Room) error {
 	}
 	return nil
 }
-func InsertMessageRoom(message app.Message, room app.Room) error {
+func InsertMessageRoom(message app.Message, room app.RoomData) error {
 	query := `INSERT INTO messages (user_id, room_id, chat_id, body) VALUES (?, ?, NULL, ?);`
 	_, err := DB.Exec(query, message.UserId, room.Id, message.Body)
 	if err != nil {
@@ -31,7 +31,7 @@ func InsertMessageRoom(message app.Message, room app.Room) error {
 	}
 	return nil
 }
-func InsertUserCloseRoom(user app.User, room app.Room) error {
+func InsertUserCloseRoom(user app.UserData, room app.RoomData) error {
 	query := `INSERT INTO room_users (room_id, user_id) VALUES (?, ?);`
 	_, err := DB.Exec(query, room.Id, user.Id)
 	if err != nil {
@@ -39,7 +39,7 @@ func InsertUserCloseRoom(user app.User, room app.Room) error {
 	}
 	return nil
 }
-func RemoveMessage(user app.User, room app.Room, message int) error {
+func RemoveMessage(user app.UserData, room app.RoomData, message int) error {
 	query := `DELETE FROM messages WHERE id = ? AND room_id = ?;`
 	_, err := DB.Exec(query, message, room.Id)
 	if err != nil {
@@ -47,7 +47,7 @@ func RemoveMessage(user app.User, room app.Room, message int) error {
 	}
 	return nil
 }
-func RemoveRoom(room app.Room) error {
+func RemoveRoom(room app.RoomData) error {
 	query := `DELETE FROM rooms WHERE id = ?;`
 	_, err := DB.Exec(query, room.Id)
 	if err != nil {
@@ -63,15 +63,7 @@ func AddUserReq(conn app.ConnReq, toUser int) error {
  	}
 	return nil
 }
-type ConnectionRequest struct {
-	ID         int
-	FromUserID int
-	ToUserID   int
-	Message    string
-	Status     int
-	CreatedAt  string
-}
-func GetConnReq(user app.User) ([]ConnectionRequest, error){
+func GetConnReq(user app.UserData) ([]app.ConnectionRequest, error){
 	query := `
 		SELECT id, from_user_id, to_user_id, message, status, created_at
 		FROM connection_requests
@@ -83,9 +75,9 @@ func GetConnReq(user app.User) ([]ConnectionRequest, error){
 		return nil, err
 	}
 	defer rows.Close()
-	var requests []ConnectionRequest
+	var requests []app.ConnectionRequest
 	for rows.Next() {
-		var r ConnectionRequest
+		var r app.ConnectionRequest
 		if err := rows.Scan(
 			&r.ID,
 			&r.FromUserID,
@@ -115,13 +107,7 @@ func GetNameByIdDB(userID int) (string, error) {
 	return name, nil
 }
 
-type RoomData struct {
-	Id      int
-	UserId  int
-	Name    string
-	Type    app.Type
-}
-func QuerUserRoomsDB(userID int) ([]RoomData, error) {
+func QuerUserRoomsDB(userID int) ([]app.RoomData, error) {
 	query := `
 		SELECT r.id, r.owner_id, r.name, r.type
 		FROM rooms r
@@ -135,10 +121,10 @@ func QuerUserRoomsDB(userID int) ([]RoomData, error) {
 	}
 	defer rows.Close()
 
-	var rooms []RoomData
+	var rooms []app.RoomData
 
 	for rows.Next() {
-		var r RoomData
+		var r app.RoomData
 		if err := rows.Scan(
 			&r.Id,
 			&r.UserId,
@@ -156,12 +142,7 @@ func QuerUserRoomsDB(userID int) ([]RoomData, error) {
 
 	return rooms, nil
 }
-type ChatData struct {
-	Id      int
-	User1Id int
-	User2Id int
-}
-func QueryUserChatsDB(userID int) ([]ChatData, error) {
+func QueryUserChatsDB(userID int) ([]app.ChatData, error) {
 	query := `
 		SELECT id, user1_id, user2_id
 		FROM chats
@@ -174,7 +155,7 @@ func QueryUserChatsDB(userID int) ([]ChatData, error) {
 	}
 	defer rows.Close()
 
-	var chats []ChatData
+	var chats []app.ChatData
 
 	for rows.Next() {
 		var chatID int
@@ -185,7 +166,7 @@ func QueryUserChatsDB(userID int) ([]ChatData, error) {
 			return nil, err
 		}
 
-		chat := ChatData{
+		chat := app.ChatData{
 			Id: chatID,
 			User1Id: user1ID,
 			User2Id: user2ID,
@@ -214,7 +195,7 @@ func GetUserIdByNameDB(username string) (int, error) {
 
 	return id, nil
 }
-func GetChatBetweenUsersDB(userA, userB int) (ChatData, error) {
+func GetChatBetweenUsersDB(userA, userB int) (app.ChatData, error) {
 	query := `
 		SELECT id, user1_id, user2_id
 		FROM chats
@@ -234,12 +215,12 @@ func GetChatBetweenUsersDB(userA, userB int) (ChatData, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return ChatData{}, errors.New("chat does not exist")
+			return app.ChatData{}, errors.New("chat does not exist")
 		}
-		return ChatData{}, err
+		return app.ChatData{}, err
 	}
 
-	chat := ChatData{
+	chat := app.ChatData{
 		Id: chatID,
 		User1Id: user1ID,
 		User2Id: user2ID,
@@ -247,15 +228,15 @@ func GetChatBetweenUsersDB(userA, userB int) (ChatData, error) {
 
 	return chat, nil
 }
-func QuerySpecificUserChatDB(currentUserID int, otherUserName string) (ChatData, error) {
+func QuerySpecificUserChatDB(currentUserID int, otherUserName string) (app.ChatData, error) {
 	otherUserID, err := GetUserIdByNameDB(otherUserName)
 	if err != nil {
-		return ChatData{}, err
+		return app.ChatData{}, err
 	}
 
 	return GetChatBetweenUsersDB(currentUserID, otherUserID)
 }
-func QueryUserRoomByNameDB(userID int, roomName string) (RoomData, error) {
+func QueryUserRoomByNameDB(userID int, roomName string) (app.RoomData, error) {
 	query := `
 		SELECT r.id, r.owner_id, r.name, r.type
 		FROM rooms r
@@ -264,7 +245,7 @@ func QueryUserRoomByNameDB(userID int, roomName string) (RoomData, error) {
 		LIMIT 1;
 	`
 
-	var room RoomData
+	var room app.RoomData
 
 	err := DB.QueryRow(query, roomName, userID).Scan(
 		&room.Id,
@@ -275,9 +256,9 @@ func QueryUserRoomByNameDB(userID int, roomName string) (RoomData, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return RoomData{}, errors.New("room not found or access denied")
+			return app.RoomData{}, errors.New("room not found or access denied")
 		}
-		return RoomData{}, err
+		return app.RoomData{}, err
 	}
 
 	return room, nil

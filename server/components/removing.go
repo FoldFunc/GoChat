@@ -22,29 +22,44 @@ func RemoveMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserExsists(userId) {
+	exsists, err := db.UserExists(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
-	if !app.RoomExsists(req.RoomId) {
+	roomExsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !roomExsists {
 		http.Error(w, "No such room", http.StatusBadRequest)
 		return
 	}
-	if !app.MessageExsists(req.RoomId, req.MessId, userId) {
+	messageExsists, err := db.MessageExistsDB(req.RoomId, req.MessId, userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if ! messageExsists{
 		http.Error(w, "No such message", http.StatusBadRequest)
 		return
 	}
-	user, err := app.GetUserById(userId)
+	user, err := db.GetUserByIdDB(userId)
 	if err != nil {
 		http.Error(w, "No such user", http.StatusBadRequest)
 		return
 	}
-	room, err := app.GetRoomById(req.RoomId)
+	room, err := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
 		http.Error(w, "No such room", http.StatusBadRequest)
 		return
 	}
-	err = db.RemoveMessage(*user, *room, req.MessId)
+	err = db.RemoveMessage(user, room, req.MessId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -66,20 +81,30 @@ func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserExsists(userId) {
+	exsists, err := db.UserExists(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists {
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
-	if !app.RoomExsistsToDelete(req.RoomId, userId) {
-		http.Error(w, "You don't own the room", http.StatusForbidden)
+	roomExsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	room, err := app.GetRoomById(req.RoomId)
+	if !roomExsists {
+		http.Error(w, "No such room", http.StatusBadRequest)
+		return
+	}
+	room, err := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
 		http.Error(w, "No such room", http.StatusBadRequest)
 		return
 	}
-	err = db.RemoveRoom(*room)
+	err = db.RemoveRoom(room)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

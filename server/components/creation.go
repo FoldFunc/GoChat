@@ -2,7 +2,6 @@ package components
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -69,13 +68,13 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	newId := app.GenerateId()
 	userId := r.Context().Value("userID").(int)
-	currentUser, err := app.GetUserById(userId)
+	currentUser, err := db.GetUserByIdDB(userId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	var admins []*app.User
-	var users  []*app.User
+	var admins []app.UserData
+	var users  []app.UserData
 	admins = append(admins, currentUser)
 	users = append(users, currentUser)
 	NewRoom := app.Room{

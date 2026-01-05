@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/db"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -19,16 +20,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	user, err := app.GetUserByName(req.UserName)
+	userId, err := db.GetUserIdByNameDB(req.UserName)
 	if err != nil {
 		http.Error(w, "No such user", http.StatusBadRequest)
 		return
 	}
-	if user.Password != req.UserPassword {
+	password, err := db.GetUserPasswordByIdDB(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if password != req.UserPassword {
 		http.Error(w, "Invalid password", http.StatusForbidden)
 		return
 	}
-	userId := user.Id
 	sessionId := app.GenerateId()
 	app.Sessions[strconv.Itoa(sessionId)] = userId
 

@@ -23,8 +23,13 @@ func GetNameById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	if !app.UserExsists(userId) {
-		http.Error(w, "User verification failed", http.StatusForbidden)
+	userIs, err := db.UserExists(userId)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !userIs {
+		http.Error(w, "Cookie invalid", http.StatusForbidden)
 		return
 	}
 	name, err := db.GetNameByIdDB(userId)
