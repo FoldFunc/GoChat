@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/FoldFunc/GoChat/server/app"
 )
@@ -32,12 +33,14 @@ func GetUserPasswordByIdDB(userID int) (string, error) {
 	var user string
 
 	err := DB.QueryRow(query, userID).Scan(
-		user,
+		&user,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
+		  log.Println("Error in quering the password: ", err)
 			return "", errors.New("user not found")
 		}
+		log.Println("Error in quering the password: ", err)
 		return "", err
 	}
 

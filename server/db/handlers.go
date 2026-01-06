@@ -1,16 +1,19 @@
 package db
 
 import (
-	"fmt"
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
+
 	"github.com/FoldFunc/GoChat/server/app"
 )
-func CreateUser(user app.User) error {
-	query := `INSERT INTO user (id, name, password, conn_type) VALUES (?, ?, ?, ?);`
-
-	_, err := DB.Exec(query, user.Id, user.Name, user.Password, user.ConnType)
+func CreateUser(user app.UserData, password string) error {
+	query := `INSERT INTO users (id, name, password, conn_type) VALUES (?, ?, ?, ?);`
+	log.Printf("name: %s;password: %s\n", user.Name, password)
+	_, err := DB.Exec(query, user.Id, user.Name, password, user.ConnType)
 	if err != nil {
+		log.Println("Error in creating user at db level: ", err)
 		return fmt.Errorf("Error in insertion: %e", err)
 	}
 	return nil
@@ -143,7 +146,7 @@ func QuerUserRoomsDB(userID int) ([]app.RoomData, error) {
 	return rooms, nil
 }
 func QueryUserChatsDB(userID int) ([]app.ChatData, error) {
-	query := `
+	query := `ha
 		SELECT id, user1_id, user2_id
 		FROM chats
 		WHERE user1_id = ? OR user2_id = ?;
@@ -263,3 +266,30 @@ func QueryUserRoomByNameDB(userID int, roomName string) (app.RoomData, error) {
 
 	return room, nil
 }
+func SetUserLoggedInDB(userID int, loggedIn bool) error {
+	var val int
+	if loggedIn {
+		val = 1
+	} else {
+		val = 0
+	}
+
+	result, err := DB.Exec(
+		`UPDATE users SET logged_in = ? WHERE id = ?;`,
+		val, userID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
+}
+

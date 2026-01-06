@@ -1,0 +1,49 @@
+(node:24739) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL ./testAll.test.js
+  API Integration Tests
+    ✓ Create user (24 ms)
+    ✕ Login (4 ms)
+    ✕ Logout (2 ms)
+
+  ● API Integration Tests › Login
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "logged in"
+    Received: undefined
+
+       7 |
+       8 |   expect(res.statusCode).toBe(200);
+    >  9 |   expect(res.body.message).toBe("logged in");
+         |                            ^
+      10 |   expect(res.headers['set-cookie']).toBeDefined();
+      11 |
+      12 |   // return cookie if you want (optional)
+
+      at toBe (tests/loginUser.test.fn.js:9:28)
+      at Object.<anonymous> (testAll.test.js:17:5)
+
+  ● API Integration Tests › Logout
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "logged out"
+    Received: undefined
+
+      3 |   const res = await agent.get("/logout");
+      4 |   expect(res.statusCode).toBe(200);
+    > 5 |   expect(res.body.message).toBe("logged out");
+        |                            ^
+      6 | }
+      7 |
+      8 | module.exports = logoutUser;
+
+      at toBe (tests/logoutUser.test.fn.js:5:28)
+      at Object.<anonymous> (testAll.test.js:21:5)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 1 passed, 3 total
+Snapshots:   0 total
+Time:        0.214 s, estimated 1 s
+Ran all test suites.

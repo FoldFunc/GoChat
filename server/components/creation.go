@@ -23,19 +23,12 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newId := app.GenerateId()
-	var connType app.Type
-	if req.ConnType {
-		connType = app.TypePublic
-	} else {
-		connType = app.TypePrivate
-	}
-	NewUser := app.User{
+	NewUser := app.UserData{
 		Id: newId,
 		Name: req.UserName,
-		ConnType: connType,
-		Password: req.Password,
+		ConnType: req.ConnType,
 	}
-	err = db.CreateUser(NewUser)
+	err = db.CreateUser(NewUser, req.Password)
 	if err != nil {
 		http.Error(w, "Error while adding to the database", http.StatusInternalServerError)
 		return

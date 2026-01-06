@@ -14,8 +14,11 @@ func Init() {
 		log.Fatal("Error while database openinig: ", err)
 		panic(err)
 	}
-	defer DB.Close()
-	migrate()
+	err = migrate()
+	if err != nil {
+		log.Fatal("Error while migrating the database: ", err)
+		panic(err)
+	}
 }
 
 
@@ -35,9 +38,9 @@ func migrate() error {
 		`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER NOT NULL,
-			name TEXT NOT NULL UNIQUE,
+			name TEXT NOT NULL,
 			password TEXT NOT NULL,
-			logged_in INTEGER NOT NULL DEFAULT 0,
+			logged_in INTEGER NOT NULL DEFAULT 1,
 			conn_type TEXT NOT NULL
 		);
 		`,

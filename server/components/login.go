@@ -2,6 +2,7 @@ package components
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	log.Println("/login called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -30,7 +32,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	err = db.SetUserLoggedInDB(userId, false)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	if password != req.UserPassword {
+		log.Printf("NO WAY:\npassword: %s;req.Password: %s", password, req.UserPassword)
 		http.Error(w, "Invalid password", http.StatusForbidden)
 		return
 	}
@@ -46,23 +54,36 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		MaxAge: 3600*24,
 	})
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "logged in",
 	})
 }
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-    cookie, err := r.Cookie("session_id")
-    if err == nil {
-        delete(app.Sessions, cookie.Value)
-    }
-
-    http.SetCookie(w, &http.Cookie{
-        Name:   "session_id",
-        Value:  "",
-        Path:   "/",
-        MaxAge: -1,
-    })
-
-    w.Write([]byte("logged out"))
+func Logout(w http.ResponseWriter, r *http.Request) {
+	log.Println("/logout called")
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	cookie, err := r.Cookie("session_id")
+	if err == nil {
+		delete(app.Sessions, cookie.Value)
+		userId := r.Context().Value("userID").(int)
+		err = db.SetUserLoggedInDB(userId, false)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:   "session_id",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "logged out",
+	})
 }
 

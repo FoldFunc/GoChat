@@ -16,6 +16,11 @@ func main() {
 	mux.HandleFunc("/", components.Hello)
 
 	mux.HandleFunc("/newUser", components.NewUser)
+	mux.HandleFunc("/login", components.Login)
+
+	mux.Handle("/logout",
+		app.AuthCookie(http.HandlerFunc(components.Logout)),
+	)
 
 	mux.Handle("/newRoom", 
 		app.AuthCookie(http.HandlerFunc(components.NewRoom)),
