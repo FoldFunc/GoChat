@@ -10,7 +10,6 @@ import (
 )
 func CreateUser(user app.UserData, password string) error {
 	query := `INSERT INTO users (id, name, password, conn_type) VALUES (?, ?, ?, ?);`
-	log.Printf("name: %s;password: %s\n", user.Name, password)
 	_, err := DB.Exec(query, user.Id, user.Name, password, user.ConnType)
 	if err != nil {
 		log.Println("Error in creating user at db level: ", err)
@@ -18,10 +17,11 @@ func CreateUser(user app.UserData, password string) error {
 	}
 	return nil
 }
-func CreateRoom(room app.Room) error {
-	query := `INSERT INTO rooms (id, owner_id, name) VALUES (?, ?, ?);`
-	_, err := DB.Exec(query, room.Id, room.UserId, room.Name)
+func CreateRoom(room app.RoomData) error {
+	query := `INSERT INTO rooms (id, owner_id, name, type) VALUES (?, ?, ?, ?);`
+	_, err := DB.Exec(query, room.Id, room.UserId, room.Name, room.Type)
 	if err != nil {
+		fmt.Printf("Error in insertion: %e", err)
 		return fmt.Errorf("Error in insertion: %e", err)
 	}
 	return nil

@@ -43,7 +43,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sessionId := app.GenerateId()
+	app.SessionsMu.Lock()
 	app.Sessions[strconv.Itoa(sessionId)] = userId
+	app.SessionsMu.Unlock()
 
 	http.SetCookie(w, &http.Cookie{
 		Name: "session_id",
@@ -67,7 +69,9 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	cookie, err := r.Cookie("session_id")
 	if err == nil {
+		app.SessionsMu.Lock()
 		delete(app.Sessions, cookie.Value)
+		app.SessionsMu.Unlock()
 		userId := r.Context().Value("userID").(int)
 		err = db.SetUserLoggedInDB(userId, false)
 		if err != nil {

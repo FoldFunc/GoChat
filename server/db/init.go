@@ -37,7 +37,7 @@ func migrate() error {
 
 		`
 		CREATE TABLE IF NOT EXISTS users (
-			id INTEGER NOT NULL,
+			id INTEGER PRIMARY KEY,
 			name TEXT NOT NULL,
 			password TEXT NOT NULL,
 			logged_in INTEGER NOT NULL DEFAULT 1,

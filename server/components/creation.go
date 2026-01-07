@@ -70,13 +70,11 @@ func NewRoom(w http.ResponseWriter, r *http.Request) {
 	var users  []app.UserData
 	admins = append(admins, currentUser)
 	users = append(users, currentUser)
-	NewRoom := app.Room{
+	NewRoom := app.RoomData{
 		Id: newId,
 		UserId: userId,
 		Name: req.RoomName,
 		Type: roomType,
-		Admins: admins,
-		Users: users,
 	}
 	err = db.CreateRoom(NewRoom)
 	if err != nil {
