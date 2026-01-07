@@ -2,6 +2,7 @@ package components
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/FoldFunc/GoChat/server/app"
@@ -9,6 +10,7 @@ import (
 )
 
 func QueryUserRooms(w http.ResponseWriter, r *http.Request) {
+	log.Println("/queryUserRooms called")
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -19,10 +21,12 @@ func QueryUserRooms(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	log.Println(rooms)
 	w.Header().Set("Content-Type", "application/json")	
 	json.NewEncoder(w).Encode(rooms)
 }
 func QueryUserChats(w http.ResponseWriter, r *http.Request) {
+	log.Println("/queryUserChats called")
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -37,6 +41,7 @@ func QueryUserChats(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(chats)
 }
 func QueryUserChat(w http.ResponseWriter, r *http.Request) {
+	log.Println("/queryUserChat called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -54,6 +59,7 @@ func QueryUserChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/queryUserRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return

@@ -292,4 +292,12 @@ func SetUserLoggedInDB(userID int, loggedIn bool) error {
 
 	return nil
 }
-
+func AddToRoomUserDB(room app.RoomData, userId int) (error) {
+	query := `INSERT INTO room_users (room_id, user_id) VALUES (?, ?);`
+	_, err := DB.Exec(query, room.Id, userId)
+	if err != nil {
+		log.Println("ERROR: ", err)
+		return err
+	}
+	return nil
+}

@@ -48,7 +48,7 @@ func migrate() error {
 		// rooms
 		`
 		CREATE TABLE IF NOT EXISTS rooms (
-			id INTEGER NOT NULL,
+			id INTEGER PRIMARY KEY,
 			owner_id INTEGER NOT NULL,
 			name TEXT NOT NULL,
 			type TEXT NOT NULL,
@@ -81,7 +81,7 @@ func migrate() error {
 		// chats
 		`
 		CREATE TABLE IF NOT EXISTS chats (
-			id INTEGER NOT NULL,
+			id INTEGER PRIMARY KEY,
 			user1_id INTEGER NOT NULL,
 			user2_id INTEGER NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -94,7 +94,7 @@ func migrate() error {
 		// messages
 		`
 		CREATE TABLE IF NOT EXISTS messages (
-			id INTEGER NOT NULL,
+			id INTEGER PRIMARY KEY,
 			user_id INTEGER NOT NULL,
 			room_id INTEGER,
 			chat_id INTEGER,
@@ -109,7 +109,7 @@ func migrate() error {
 		// connection requests
 		`
 		CREATE TABLE IF NOT EXISTS connection_requests (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id INTEGER PRIMARY KEY,
 			from_user_id INTEGER NOT NULL,
 			to_user_id INTEGER NOT NULL,
 			message TEXT,

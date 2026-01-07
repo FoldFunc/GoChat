@@ -89,7 +89,7 @@ func RoomExistsDB(roomID int) (bool, error) {
 	return true, nil
 }
 func IsRoomPublicDB(roomID int) (bool, error) {
-	var roomType int
+	var roomType string
 
 	err := DB.QueryRow(
 		`SELECT type FROM rooms WHERE id = ? LIMIT 1;`,
@@ -102,8 +102,10 @@ func IsRoomPublicDB(roomID int) (bool, error) {
 		}
 		return false, err
 	}
-
-	return roomType == 0, nil
+	if roomType == "private" {
+		return false, nil
+	}
+	return true, nil
 }
 func GetRoomByIDDB(roomID int) (app.RoomData, error) {
 	query := `

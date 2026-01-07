@@ -21,6 +21,7 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+	log.Printf("room_id: %d;message: %s", req.RoomId, req.Body)
 	exsists, err := db.RoomExistsDB(req.RoomId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -56,7 +57,8 @@ func SendMessageOpenRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	idInt := strconv.Itoa(id)
+	idInt:= strconv.Itoa(id)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "message created",
 		"id": idInt,
