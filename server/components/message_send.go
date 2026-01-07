@@ -121,6 +121,7 @@ func SendMessageCloseRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	idInt := strconv.Itoa(id)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "message created",
 		"id": idInt,
