@@ -16,9 +16,11 @@ func UserExists(userID int) (bool, error) {
 	).Scan(&exists)
 
 	if err == sql.ErrNoRows {
+		log.Println("Error: ", err)
 		return false, nil
 	}
 	if err != nil {
+		log.Println("Error: ", err)
 		return false, err
 	}
 	return true, nil
@@ -158,8 +160,10 @@ func IsUserAdminInRoomDB(userID, roomID int) (bool, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Println("error: ", err)
 			return false, nil
 		}
+		log.Println("error: ", err)
 		return false, err
 	}
 

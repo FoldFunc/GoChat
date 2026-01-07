@@ -9,7 +9,6 @@ async function loginUser(agent, username, password){
   expect(res.body.message).toBe("logged in");
   expect(res.headers['set-cookie']).toBeDefined();
 
-  // return cookie if you want (optional)
   return res.headers['set-cookie'][0];
 }
 

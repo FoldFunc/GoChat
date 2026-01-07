@@ -107,6 +107,9 @@ type SendUserReq struct {
 type GetNameByIdReq struct {
 	SearchId int `json:"search_id"`
 }
+type GetIdByNameReq struct {
+	SearchName string `json:"search_name"`
+}
 type LoginReq struct {
 	UserName string `json:"user_name"`
 	UserPassword string `json:"user_password"`

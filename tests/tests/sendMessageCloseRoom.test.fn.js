@@ -1,6 +1,6 @@
-async function sendMessageOpenRoom(agent, roomId, message) {
+async function sendMessageCloseRoom(agent, roomId, message) {
   const res = await agent
-    .post("/sendMessageOpenRoom")
+    .post("/sendMessageCloseRoom")
     .send({ room_id: Number(roomId.Id), body: message})
     .set("Content-Type", "application/json");
   expect(res.statusCode).toBe(200);
@@ -8,5 +8,6 @@ async function sendMessageOpenRoom(agent, roomId, message) {
   expect(res.body).toHaveProperty("id");
 }
 
-module.exports = sendMessageOpenRoom;
+module.exports = sendMessageCloseRoom;
+
 

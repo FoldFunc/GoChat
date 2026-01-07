@@ -1,6 +1,4 @@
 // tests/newUser.test.fn.js
-const request = require("supertest");
-const API_URL = "http://localhost:42069";
 
 async function createUser(agent, username, password, connType) {
   const res = await agent

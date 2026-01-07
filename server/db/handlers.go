@@ -198,6 +198,20 @@ func GetUserIdByNameDB(username string) (int, error) {
 
 	return id, nil
 }
+func GetUserNameByIdDB(userId int) (int, error) {
+	query := `SELECT name FROM users WHERE id = ?;`
+
+	var id int
+	err := DB.QueryRow(query, userId).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("user not found")
+		}
+		return 0, err
+	}
+
+	return id, nil
+}
 func GetChatBetweenUsersDB(userA, userB int) (app.ChatData, error) {
 	query := `
 		SELECT id, user1_id, user2_id
@@ -294,6 +308,15 @@ func SetUserLoggedInDB(userID int, loggedIn bool) error {
 }
 func AddToRoomUserDB(room app.RoomData, userId int) (error) {
 	query := `INSERT INTO room_users (room_id, user_id) VALUES (?, ?);`
+	_, err := DB.Exec(query, room.Id, userId)
+	if err != nil {
+		log.Println("ERROR: ", err)
+		return err
+	}
+	return nil
+}
+func AddUserAsAdminDB(room app.RoomData, userId int) (error) {
+	query := `INSERT INTO room_admins (room_id, user_id) VALUES (?, ?);`
 	_, err := DB.Exec(query, room.Id, userId)
 	if err != nil {
 		log.Println("ERROR: ", err)

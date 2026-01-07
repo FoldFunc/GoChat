@@ -20,6 +20,7 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return 
 	}
+	log.Printf("user: %d;room: %d", req.UserId, req.RoomId)
 	adminID := r.Context().Value("userID").(int)
 	exsists, err := db.UserExists(req.UserId)
 	if err != nil {
@@ -36,6 +37,7 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !isAdmin {
+		log.Println("adminId: ", adminID)
 		http.Error(w, "AdminId is not an admin", http.StatusForbidden)
 		return
 	}
@@ -54,6 +56,7 @@ func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "User added to a close room",
 	})

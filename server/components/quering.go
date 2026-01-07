@@ -37,6 +37,7 @@ func QueryUserChats(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	log.Println(chats)
 	w.Header().Set("Content-Type", "application/json")	
 	json.NewEncoder(w).Encode(chats)
 }
@@ -54,6 +55,7 @@ func QueryUserChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	chat, err := db.QuerySpecificUserChatDB(userId, req.ChatWithName)
+	log.Println(chat)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(chat)
 }
@@ -81,6 +83,7 @@ func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	log.Println(room)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(room)
 }

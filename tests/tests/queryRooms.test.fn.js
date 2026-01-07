@@ -10,6 +10,4 @@ async function queryRooms(agent) {
   }
   return res.body
 }
-
 module.exports = queryRooms;
-

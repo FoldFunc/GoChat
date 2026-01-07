@@ -53,7 +53,10 @@ func main() {
 	mux.Handle("/getNameById", 
 		app.AuthCookie(http.HandlerFunc(components.GetNameById)),
 	)
-
+	mux.Handle("/getIdByName", 
+		app.AuthCookie(http.HandlerFunc(components.GetIdByName)),
+	)
+	
 	mux.Handle("/queryUserRooms",
 		app.AuthCookie(http.HandlerFunc(components.QueryUserRooms)),
 	)
