@@ -120,3 +120,7 @@ type QueryUserChatReq struct {
 type QueryUserRoomReq struct {
 	RoomName string `json:"room_name"`
 }
+type QueryMessageFromRoomReq struct {
+	RoomId      int    `json:"room_id"`
+	MessageBody string `json:"message_body"`
+}

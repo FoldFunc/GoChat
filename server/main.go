@@ -40,6 +40,7 @@ func main() {
 	mux.Handle("/removeMessage", 
 		app.AuthCookie(http.HandlerFunc(components.RemoveMessage)),
 	)
+	// Here
 	mux.Handle("/removeRoom", 
 		app.AuthCookie(http.HandlerFunc(components.RemoveRoom)),
 	)
@@ -49,7 +50,7 @@ func main() {
 	mux.Handle("/viewUserRequests", 
 		app.AuthCookie(http.HandlerFunc(components.ViewUserRequests)),
 	)
-
+	// To here
 	mux.Handle("/getNameById", 
 		app.AuthCookie(http.HandlerFunc(components.GetNameById)),
 	)
@@ -68,6 +69,9 @@ func main() {
 	)
 	mux.Handle("/queryUserChats",
 		app.AuthCookie(http.HandlerFunc(components.QueryUserChats)),
+	)
+	mux.Handle("/queryMessageFromRoom",
+		app.AuthCookie(http.HandlerFunc(components.QueryMessageFromRoom)),
 	)
 	server := &http.Server{
 		Addr: ":42069",

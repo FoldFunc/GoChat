@@ -82,3 +82,48 @@ func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(room)
 }
+func QueryMessageFromRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/queryMessageFromRoom called")
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	var req app.QueryMessageFromRoomReq
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Println("JSON ERROR: ", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	userId := r.Context().Value("userID").(int)
+	exsists, err := db.RoomExistsDB(req.RoomId)
+	if err != nil {
+		log.Println("RoomExistsDB error: ", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !exsists {
+		http.Error(w, "Room does not exsist", http.StatusBadRequest)
+		return
+	}
+	messageId, err := db.GetMessageIDByNameDB(req.RoomId, req.MessageBody, userId)
+	if err != nil {
+		log.Println("GetMessageIDByNameDB error: ", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	messageExsists, err := db.MessageExistsDB(req.RoomId, messageId, userId)
+	if err != nil {
+		log.Println("MessageExistsDB error: ", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !messageExsists {
+		http.Error(w, "Message does not exsist", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{
+		"message_id": messageId,
+	})
+}

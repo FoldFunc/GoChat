@@ -346,3 +346,42 @@ func AddUserAsAdminDB(room app.RoomData, userId int) (error) {
 	}
 	return nil
 }
+func GetRoomIDByNameDB(roomName string) (int, error) {
+	query := `SELECT id FROM rooms WHERE name = ?;`
+
+	var id int
+	err := DB.QueryRow(query, roomName).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("user not found")
+		}
+		return 0, err
+	}
+
+	return id, nil
+}
+func GetMessageIDByNameDB(roomID int, messageBody string, userID int) (int, error) {
+	log.Printf("roomId: %d;messageBody: %s;userID: %d", roomID, messageBody, userID)
+	query := `
+		SELECT id
+		FROM messages
+		WHERE room_id = ?
+		  AND user_id = ?
+		  AND body = ?
+		ORDER BY id DESC
+		LIMIT 1;
+	`
+
+	var messageID int
+
+	err := DB.QueryRow(query, roomID, userID, messageBody).Scan(&messageID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("message not found")
+		}
+		return 0, err
+	}
+
+	return messageID, nil
+}
+
