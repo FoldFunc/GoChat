@@ -95,6 +95,35 @@ func GetConnReq(user app.UserData) ([]app.ConnectionRequest, error){
 	}
 	return requests, nil
 }
+func GetConnReqFrom(user app.UserData, userFrom app.UserData) ([]app.ConnectionRequest, error){
+	query := `
+		SELECT id, from_user_id, to_user_id, message, status, created_at
+		FROM connection_requests
+		WHERE to_user_id = ? AND status = 0 AND from_user_id = ?
+		ORDER BY created_at DESC;
+	`
+	rows, err := DB.Query(query, user.Id, userFrom.Id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var requests []app.ConnectionRequest
+	for rows.Next() {
+		var r app.ConnectionRequest
+		if err := rows.Scan(
+			&r.ID,
+			&r.FromUserID,
+			&r.ToUserID,
+			&r.Message,
+			&r.Status,
+			&r.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		requests = append(requests, r)	
+	}
+	return requests, nil
+}
 func GetNameByIdDB(userID int) (string, error) {
 	query := `SELECT name FROM users WHERE id = ?;`
 
@@ -384,4 +413,68 @@ func GetMessageIDByNameDB(roomID int, messageBody string, userID int) (int, erro
 
 	return messageID, nil
 }
+func RequestExsists(requestID, userId int) (bool, error) {
+	query := `
+		SELECT 1
+		FROM requests
+		WHERE id = ? AND to_user_id = ?
+		LIMIT 1;
+	`
 
+	var exists int
+
+	err := DB.QueryRow(query, requestID, userId).Scan(&exists)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+func RequestAccept(userID int, requestID int) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	var fromUserID int64
+
+	err = tx.QueryRow(`
+		SELECT from_user_id
+		FROM requests
+		WHERE id = ? AND to_user_id = ?
+		LIMIT 1;
+	`, requestID, userID).Scan(&fromUserID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("request not found or not authorized")
+		}
+		return err
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO friends (user_id, friend_id)
+		VALUES (?, ?);
+	`, userID, fromUserID)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+		DELETE FROM requests
+		WHERE id = ?;
+	`, requestID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}

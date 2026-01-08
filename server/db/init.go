@@ -119,6 +119,15 @@ func migrate() error {
 			FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
 		);
 		`,
+		`
+		CREATE TABLE IF NOT EXISTS friends (
+			user_id INTEGER NOT NULL,
+			friend_id INTEGER NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (user_id, friend_id),
+			CHECK (user_id <> friend_id)
+		);
+		`,
 	}
 
 	for i, q := range queries {

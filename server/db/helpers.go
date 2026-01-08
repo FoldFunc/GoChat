@@ -187,7 +187,7 @@ func MessageExistsDB(roomID, messageID, userID int) (bool, error) {
 }
 
 func IsUserPrivateDB(userID int) (bool, error) {
-	var connType string
+	var connType int
 
 	err := DB.QueryRow(
 		`SELECT conn_type FROM users WHERE id = ? LIMIT 1;`,
@@ -200,7 +200,6 @@ func IsUserPrivateDB(userID int) (bool, error) {
 		}
 		return false, err
 	}
-
-	return connType == "private", nil
+	return connType == 0, nil
 }
 

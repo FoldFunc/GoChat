@@ -1,5 +1,4 @@
 async function addUserOpenRoom(agent, roomId) {
-  console.log(roomId)
   const res = await agent
     .post("/addToOpenRoom")
     .send({ room_id: roomId})

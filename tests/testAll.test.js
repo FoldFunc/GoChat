@@ -11,21 +11,33 @@ const queryUser = require("./tests/queryUser.test.fn")
 const addUserCloseRoom = require("./tests/addUserCloseRoom.test.fn")
 const queryRoomByName = require("./tests/queryRoomByName.test.fn")
 const addUserOpenRoom = require("./tests/addUserOpenRoom.test.fn")
-
+const removeMessage = require("./tests/removeMessage.test.fn")
+const queryMessageByBody = require("./tests/queryMessageByBody.test.fn")
+const removeRoom = require("./tests/removeRoom.test.fn");
+const sendFriendRequest = require("./tests/sendFriendRequest.test.fn")
+const queryUserFriendReqestsFromUser = require("./tests/queryUserFriendReqestsFromUser.test.fn")
+const acceptFriendRequest = require("./tests/acceptFriendRequest.test.fn")
 describe("API Integration Tests", () => {
   const agent = createAgent();
   const username = "foldfunc";
   const password = "pass1";
+  const usernamePriv = "foldfuncpriv";
+  const passwordPriv = "pass1priv";
   const connType = true;
   const roomNamePublic = "foldfuncRoom";
+  const roomNamePublicTest = "foldfuncRoomTest";
   const roomTypePublic = true;
   const roomNamePrivate = "foldfuncRoomPriv";
   const roomTypePrivate = false;
   let rooms = [];
   let user = {};
   let openRoom = {};
+  let messageId = {};
+  let requestId = {};
   const messageOpen = "Hello to an open room";
   const messageClose = "Hello to an close room";
+  const messageOpenTest = "Hello to an open room test";
+
   it("Create user", async () => {
     await createUser(agent, username, password, connType);
   });
@@ -68,8 +80,45 @@ describe("API Integration Tests", () => {
   })
   it("Add user to a open room", async () => {
     await addUserOpenRoom(agent, openRoom);
+  });
+  it("Adding a message to an open room as a test user", async () => {
+    await sendMessageOpenRoom(agent, rooms[0], messageOpenTest); 
+  });
+  it("Query a message from an open room", async () => {
+    messageId = await queryMessageByBody(agent, openRoom, messageOpenTest);
   })
-  // From here you are a test user beacouse the stupid agent can't have more than
-  // one cookie at a time.
+  it("Removing a message from a room", async () => {
+    await removeMessage(agent, messageId, openRoom);
+  });
+  it("Create test room for removal", async () => {
+    await createRoom(agent, roomNamePublicTest, roomTypePublic);
+  });
+  it("Get test room id", async () => {
+    testRoomId = await queryRoomByName(agent, roomNamePublicTest); 
+  });
+  it("Remove the test room", async () => {
+    await removeRoom(agent, testRoomId);
+  });
+  it("Create a private user", async () => {
+    await createUser(agent, usernamePriv, passwordPriv);
+  });
+  it("Send friend request from test user to foldfunc", async () => {
+    user = await queryUser(agent, usernamePriv);
+    await sendFriendRequest(agent, user)
+  });
+  it("logout test user so you can accept as priv user", async () => {
+    await logoutUser(agent);
+  });
+  it("login priv user to accept the reqest", async () => {
+    await loginUser(agent, usernamePriv, passwordPriv);
+  });
+  it("Find all reqeusts from the test user", async () => {
+    user = await queryUser(agent, "test")
+    // This is an []Object
+    requestId = await queryUserFriendReqestsFromUser(agent, user)
+  });
+  it("Accept the chat friend request", async () => {
+    await acceptFriendRequest(agent, requestId[0]);
+  });
 });
 

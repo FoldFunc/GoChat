@@ -50,6 +50,12 @@ func main() {
 	mux.Handle("/viewUserRequests", 
 		app.AuthCookie(http.HandlerFunc(components.ViewUserRequests)),
 	)
+	mux.Handle("/viewUserFromUser", 
+		app.AuthCookie(http.HandlerFunc(components.ViewUserRequestsFromUser)),
+	)
+	mux.Handle("/acceptReqeustFromUser",
+		app.AuthCookie(http.HandlerFunc(components.AcceptRequestFromUser)),
+	)
 	// To here
 	mux.Handle("/getNameById", 
 		app.AuthCookie(http.HandlerFunc(components.GetNameById)),

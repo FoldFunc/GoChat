@@ -124,3 +124,10 @@ type QueryMessageFromRoomReq struct {
 	RoomId      int    `json:"room_id"`
 	MessageBody string `json:"message_body"`
 }
+type ViewUserRequestsFromUserReq struct {
+	UserId int `json:"user_id"`
+}
+type AcceptRequestFromUserReq struct {
+	RequestId     int  `json:"request_id"`
+	RequestAccept bool `json:"request_accept"`
+}
