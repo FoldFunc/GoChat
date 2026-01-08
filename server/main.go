@@ -57,16 +57,18 @@ func main() {
 		app.AuthCookie(http.HandlerFunc(components.GetIdByName)),
 	)
 	
+	mux.Handle("/queryUserRoom",
+		app.AuthCookie(http.HandlerFunc(components.QueryUserRoom)),
+	)
 	mux.Handle("/queryUserRooms",
 		app.AuthCookie(http.HandlerFunc(components.QueryUserRooms)),
-	)
-	mux.Handle("/queryUserChats",
-		app.AuthCookie(http.HandlerFunc(components.QueryUserChats)),
 	)
 	mux.Handle("/queryUserChat",
 		app.AuthCookie(http.HandlerFunc(components.QueryUserChat)),
 	)
-
+	mux.Handle("/queryUserChats",
+		app.AuthCookie(http.HandlerFunc(components.QueryUserChats)),
+	)
 	server := &http.Server{
 		Addr: ":42069",
 		Handler: mux,

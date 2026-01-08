@@ -253,7 +253,29 @@ func QuerySpecificUserChatDB(currentUserID int, otherUserName string) (app.ChatD
 
 	return GetChatBetweenUsersDB(currentUserID, otherUserID)
 }
+func QueryPublicRoomByNameDB(roomName string) (int, error) {
+	query := `
+		SELECT id
+		FROM rooms
+		WHERE name = ? AND TYPE = 'public'
+		LIMIT 1;
+	`
+
+	var room int
+
+	err := DB.QueryRow(query, roomName).Scan(&room)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -1, errors.New("room not found or access denied")
+		}
+		return -1, err
+	}
+
+	return room, nil
+}
 func QueryUserRoomByNameDB(userID int, roomName string) (app.RoomData, error) {
+	log.Printf("userID: %d;roomName: %s\n", userID, roomName)
 	query := `
 		SELECT r.id, r.owner_id, r.name, r.type
 		FROM rooms r

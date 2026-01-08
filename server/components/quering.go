@@ -66,19 +66,14 @@ func QueryUserRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
-	userId := r.Context().Value("userID").(int)
 	var req app.QueryUserRoomReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.Println("HERE")
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	user, err := db.GetUserByIdDB(userId)
-	if err != nil {
-		http.Error(w, "User not found", http.StatusBadRequest)
-		return
-	}
-	room, err := db.QueryUserRoomByNameDB(user.Id, req.RoomName)
+	room, err := db.QueryPublicRoomByNameDB(req.RoomName)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

@@ -9,6 +9,8 @@ const sendMessageCloseRoom = require("./tests/sendMessageCloseRoom.test.fn")
 const queryRooms = require("./tests/queryRooms.test.fn")
 const queryUser = require("./tests/queryUser.test.fn")
 const addUserCloseRoom = require("./tests/addUserCloseRoom.test.fn")
+const queryRoomByName = require("./tests/queryRoomByName.test.fn")
+const addUserOpenRoom = require("./tests/addUserOpenRoom.test.fn")
 
 describe("API Integration Tests", () => {
   const agent = createAgent();
@@ -21,6 +23,7 @@ describe("API Integration Tests", () => {
   const roomTypePrivate = false;
   let rooms = [];
   let user = {};
+  let openRoom = {};
   const messageOpen = "Hello to an open room";
   const messageClose = "Hello to an close room";
   it("Create user", async () => {
@@ -60,6 +63,12 @@ describe("API Integration Tests", () => {
   it("Login test user", async () => {
     await loginUser(agent, "test", "test");
   });
+  it("Query open room by name", async () => {
+    openRoom = await queryRoomByName(agent, roomNamePublic);
+  })
+  it("Add user to a open room", async () => {
+    await addUserOpenRoom(agent, openRoom);
+  })
   // From here you are a test user beacouse the stupid agent can't have more than
   // one cookie at a time.
 });
