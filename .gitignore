@@ -72,3 +72,6 @@ Thumbs.db
 tests/node_modules/
 tests/package-lock.json
 tests/*.log
+server/cmd/server/.env
+server/cmd/server/*.crt
+server/cmd/server/*.key

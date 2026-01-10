@@ -1,5 +1,8 @@
 .git
 .gitignore
+cmd/server/.env
+server/cmd/server/*.crt
+server/cmd/server/*.key
 Dockerfile
 log.txt
 **/*_test.go

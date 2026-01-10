@@ -1,7 +1,10 @@
-// testAgent.js
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const request = require("supertest");
+const https = require("https");
 
-const API_URL = "http://localhost:8080";
+const agent = request.agent("https://localhost:433");
+agent.agent = new https.Agent({ rejectUnauthorized: false });
 
-module.exports = () => request.agent(API_URL);
+module.exports = () => agent;
 

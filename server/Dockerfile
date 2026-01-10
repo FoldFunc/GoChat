@@ -31,7 +31,7 @@ COPY --from=builder /app/server /app/server
 # create it at runtime instead of baking files in
 WORKDIR /data
 
-EXPOSE 8080
+EXPOSE 443
 
 USER nonroot:nonroot
 
