@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/internal/app"
 	"github.com/FoldFunc/GoChat/server/db"
 )
 

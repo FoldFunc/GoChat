@@ -1,18 +1,13 @@
-package main
+package http
 
 import (
-	"log"
 	"net/http"
-	"time"
-
-	"github.com/FoldFunc/GoChat/server/app"
-	"github.com/FoldFunc/GoChat/server/components"
-	"github.com/FoldFunc/GoChat/server/db"
+	"github.com/FoldFunc/GoChat/server/internal/handlers"
+	"github.com/FoldFunc/GoChat/server/internal/app"
 )
-func main() {
-	db.Init()
-	mux := http.NewServeMux()
 
+func Routes() http.Handler {
+	mux := http.NewServeMux()
 	mux.HandleFunc("/", components.Hello)
 
 	mux.HandleFunc("/newUser", components.NewUser)
@@ -79,12 +74,5 @@ func main() {
 	mux.Handle("/queryMessageFromRoom",
 		app.AuthCookie(http.HandlerFunc(components.QueryMessageFromRoom)),
 	)
-	server := &http.Server{
-		Addr: ":42069",
-		Handler: mux,
-		ReadTimeout: 5 * time.Second,
-		WriteTimeout: 5 * time.Second,
-	}
-	log.Println("Server running on http://localhost:42069")
-	server.ListenAndServe()
+	return mux
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/internal/app"
 )
 
 func UserExists(userID int) (bool, error) {

@@ -5,77 +5,68 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/internal/app"
 	"github.com/FoldFunc/GoChat/server/db"
 )
-func RemoveMessage(w http.ResponseWriter, r *http.Request) {
-	log.Println("/removeMessage called")
+func AddToCloseRoom(w http.ResponseWriter, r *http.Request) {
+	log.Println("/addToCloseRoom called")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
-	var req app.RemovemesReq
+	var req app.AddToCloseRoomReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Println("JSON ERROR: ", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+		return 
 	}
-	userId := r.Context().Value("userID").(int)
-	exsists, err := db.UserExists(userId)
+	log.Printf("user: %d;room: %d", req.UserId, req.RoomId)
+	adminID := r.Context().Value("userID").(int)
+	exsists, err := db.UserExists(req.UserId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if !exsists {
-		http.Error(w, "User verification failed", http.StatusForbidden)
+	if !exsists{
+		http.Error(w, "User verification failed", http.StatusNotFound)
 		return
 	}
-	roomExsists, err := db.RoomExistsDB(req.RoomId)
+	isAdmin, err := db.IsUserAdminInRoomDB(adminID, req.RoomId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if !roomExsists {
-		http.Error(w, "No such room", http.StatusBadRequest)
+	if !isAdmin {
+		log.Println("adminId: ", adminID)
+		http.Error(w, "AdminId is not an admin", http.StatusForbidden)
 		return
 	}
-	messageExsists, err := db.MessageExistsDB(req.RoomId, req.MessId, userId)
+	currentUser, err := db.GetUserByIdDB(req.UserId)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "User not found", http.StatusForbidden)
 		return
 	}
-	if ! messageExsists{
-		http.Error(w, "No such message", http.StatusBadRequest)
-		return
-	}
-	user, err := db.GetUserByIdDB(userId)
+	currentRoom, err := db.GetRoomByIDDB(req.RoomId)
 	if err != nil {
-		http.Error(w, "No such user", http.StatusBadRequest)
+		http.Error(w, "Room not found", http.StatusBadRequest)
 		return
 	}
-	room, err := db.GetRoomByIDDB(req.RoomId)
-	if err != nil {
-		http.Error(w, "No such room", http.StatusBadRequest)
-		return
-	}
-	err = db.RemoveMessage(user, room, req.MessId)
+	err = db.InsertUserCloseRoom(currentUser, currentRoom)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "message deleted",
-	}) 
+		"message": "User added to a close room",
+	})
 }
-func RemoveRoom(w http.ResponseWriter, r *http.Request) {
-	log.Println("/removeRoom called")
+func AddToOpenRoom(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
-	var req app.RemoveRoomReq 
+	var req app.AccesRoomReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -87,7 +78,7 @@ func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if !exsists {
+	if !exsists{
 		http.Error(w, "User verification failed", http.StatusForbidden)
 		return
 	}
@@ -96,22 +87,36 @@ func RemoveRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if !roomExsists {
-		http.Error(w, "No such room", http.StatusBadRequest)
+	if !roomExsists{
+		http.Error(w, "Room does not exsist", http.StatusBadRequest)
 		return
 	}
-	room, err := db.GetRoomByIDDB(req.RoomId)
+	isPublic, err := db.IsRoomPublicDB(req.RoomId)
 	if err != nil {
-		http.Error(w, "No such room", http.StatusBadRequest)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	err = db.RemoveRoom(room)
+	if !isPublic {
+		http.Error(w, "Room is not public", http.StatusBadRequest)
+		return
+	}
+	currentUser, err := db.GetUserByIdDB(userId) 
+	if err != nil {
+		http.Error(w, "No such user", http.StatusForbidden)
+		return
+	}
+	currentRoom, err := db.GetRoomByIDDB(req.RoomId) 
+	if err != nil {
+		http.Error(w, "No such room", http.StatusForbidden)
+		return
+	}
+	err = db.InsertUserCloseRoom(currentUser, currentRoom)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "room deleted",
-	}) 
+		"message": "User added to a close room",
+	})
 }

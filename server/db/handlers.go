@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
-	"github.com/FoldFunc/GoChat/server/app"
+	"github.com/FoldFunc/GoChat/server/internal/app"
 )
 func CreateUser(user app.UserData, password string) error {
 	query := `INSERT INTO users (id, name, password, conn_type) VALUES (?, ?, ?, ?);`

@@ -9,7 +9,7 @@ import (
 var DB *sql.DB
 func Init() {
 	var err error
-	DB, err = sql.Open("sqlite", "app.db")
+	DB, err = sql.Open("sqlite", "/data/app.db")
 	if err != nil {
 		log.Fatal("Error while database openinig: ", err)
 		panic(err)
