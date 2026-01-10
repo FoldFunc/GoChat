@@ -28,11 +28,6 @@ WORKDIR /app
 # Copy server binary from builder
 COPY --from=builder /app/server /app/server
 
-# Copy the writable /data directory from builder
-COPY --from=builder /data /data
-
-# Set working directory for runtime files (SQLite DB)
-WORKDIR /data
 
 # Expose port Railway will use
 EXPOSE 8080

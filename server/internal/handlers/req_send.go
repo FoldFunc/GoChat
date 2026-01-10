@@ -147,7 +147,7 @@ func AcceptRequestFromUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.Context().Value("userID").(int)
-	exsists, err := db.RequestExsists(req.RequestId, userId)
+	exsists, err := db.RequestExists(req.RequestId, userId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

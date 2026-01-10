@@ -9,7 +9,7 @@ func GenerateId() (int) {
 	var newId int
 	for {
 		cont = false
-		newId = rand.IntN(1 << 32)
+		newId = rand.IntN(1 << 8)
 		for _, n := range UsedIds {
 			if n == newId {
 				cont = true
