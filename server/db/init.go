@@ -2,14 +2,20 @@ package db
 
 import (
 	"database/sql"
-	"log"
-	_ "modernc.org/sqlite"
 	"fmt"
+	"log"
+	"os"
+
+	_ "modernc.org/sqlite"
 )
 var DB *sql.DB
 func Init() {
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "/data/app.db"
+	}
 	var err error
-	DB, err = sql.Open("sqlite", "/data/app.db")
+	DB, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal("Error while database openinig: ", err)
 		panic(err)

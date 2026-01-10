@@ -3,10 +3,10 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Install git (sometimes needed for private modules)
+# Install git for private modules
 RUN apk add --no-cache git
 
-# Copy go mod files first (better caching)
+# Copy go.mod files first (for caching)
 COPY go.mod go.sum ./
 RUN go mod download
 
@@ -14,26 +14,32 @@ RUN go mod download
 COPY . .
 
 # Build the binary
-# 👇 change ./cmd/app if your folder name is different
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./cmd/server
 
+# Create writable directory in build stage (works because Alpine has a shell)
+RUN mkdir -p /data
 
 # ---------- Runtime stage ----------
 FROM gcr.io/distroless/base-debian12
 
+# Set working directory for binary
 WORKDIR /app
 
-# Copy only the binary
+# Copy server binary from builder
 COPY --from=builder /app/server /app/server
 
-# If you NEED a writable directory (sqlite, logs, etc)
-# create it at runtime instead of baking files in
+# Copy the writable /data directory from builder
+COPY --from=builder /data /data
+
+# Set working directory for runtime files (SQLite DB)
 WORKDIR /data
 
-EXPOSE 443
+# Expose port Railway will use
+EXPOSE 8080
 
+# Run as non-root user
 USER nonroot:nonroot
 
+# Start the Go server
 ENTRYPOINT ["/app/server"]
 
