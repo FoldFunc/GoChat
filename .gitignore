@@ -75,3 +75,4 @@ tests/*.log
 server/cmd/server/.env
 server/cmd/server/*.crt
 server/cmd/server/*.key
+frontend/node_modules
