@@ -1,0 +1,15 @@
+.title {
+  font-size: 3rem;
+  font-weight: 600;
+  position: relative;
+}
+
+.title::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 4px;
+  background-color: #667eea;
+  margin-top: 12px;
+}
+
